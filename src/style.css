@@ -1,0 +1,41 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #000;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+}
+
+input[type=range] {
+    margin: 10px 0;
+    width: 800px;
+    background: transparent;
+}
+
+label {
+    color: #ffffff;
+}
+
+output {
+    margin: 0 5px;
+    color: #ffffff;
+}
+
+#main-container {
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#tree-controls {
+    margin: 0 auto;
+}
+
+#fractal-container {
+    margin: 0 auto;
+}
