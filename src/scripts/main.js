@@ -2,7 +2,7 @@ const BRANCH_COLOR_START = "#AD343E";
 const BRANCH_COLOR_END = "#42D9C8";
 const BRANCH_WIDTH_START = 0.5;
 const BRANCH_WIDTH_END = 1.0;
-const APP_BACKGROUND_COLOR = "#121016";
+// const APP_BACKGROUND_COLOR = "#121016";
 
 function buildWidthMap(startWidth, endWidth, numLayers) {
     const widthDiff = endWidth - startWidth;
@@ -57,7 +57,7 @@ function toRadians(degrees) {
     return degrees * (Math.PI / 180);
 }
 
-function generateTree(fractalStage, colorMap, widthMap, branchLength, angleOffsetConstant, currLayer, angleOffset, addedOffset, nodeX, nodeY) {
+function generateTree(context, colorMap, widthMap, branchLength, angleOffsetConstant, angleOffset, addedOffset, currLayer, nodeX, nodeY) {
     if (currLayer === 0) {
         return;
     }
@@ -69,16 +69,21 @@ function generateTree(fractalStage, colorMap, widthMap, branchLength, angleOffse
     for (let offset of [leftOffset, rightOffset]) {
         let newX = nodeX + branchLength * Math.sin(offset + addedOffset);
         let newY = nodeY + branchLength * Math.cos(offset + addedOffset);
-        fractalStage.moveTo(nodeX, nodeY);
-        fractalStage.lineTo(newX, newY);
-        fractalStage.stroke({ width: widthMap.get(newLayer), color: colorMap.get(newLayer) });
+        generateTree(context, colorMap, widthMap, branchLength, angleOffsetConstant, offset, addedOffset, newLayer, newX, newY);
 
-        generateTree(fractalStage, colorMap, widthMap, branchLength, angleOffsetConstant, newLayer, offset, addedOffset, newX, newY);
+        context.beginPath();
+        context.moveTo(nodeX, nodeY);
+        context.lineTo(newX, newY);
+        context.strokeStyle = colorMap.get(newLayer);
+        context.lineWidth = widthMap.get(newLayer);
+        context.closePath();
+        context.stroke();
+
     }
 }
 
-function generateTreeFromInputs(fractalStage, midpoint) {
-    fractalStage.clear();
+function generateTreeFromInputs(context, midpoint) {
+    context.reset();
     let branchLength = parseInt(document.getElementById("branch-length-input").value);
     let numLayers = parseInt(document.getElementById("num-layers-input").value);
     let degreesOffset = parseInt(document.getElementById("angle-input").value);
@@ -91,34 +96,26 @@ function generateTreeFromInputs(fractalStage, midpoint) {
     let addedDegrees = 0;
     for (let root = 1; root <= numRoots; root++) {
         addedDegrees = (360 / numRoots) * root;
-        generateTree(fractalStage, colorMap, widthMap, branchLength, toRadians(degreesOffset), numLayers, 0, toRadians(addedDegrees), midpoint[0], midpoint[1]);
+        generateTree(context, colorMap, widthMap, branchLength, toRadians(degreesOffset), 0, toRadians(addedDegrees), numLayers, midpoint[0], midpoint[1]);
     }
 }
 
+
 function main() {
-    (async () =>
-    {
-        const app = new PIXI.Application();
-        await app.init({ width: 1000, height: 1000, antialias: true });
-        document.getElementById("fractal-container").appendChild(app.canvas);
+    const midpoint = [500, 500];
 
-        const midpoint = [500, 500];
+    const canvas = document.getElementById("fractal-container");
+    const context = canvas.getContext("2d");
 
-        const backgroundRectangle = new PIXI.Graphics()
-            .rect(0, 0, 1000, 1000)
-            .fill(APP_BACKGROUND_COLOR);
+    // context.fillStyle = APP_BACKGROUND_COLOR;
+    // context.fillRect(0, 0, 1000, 1000);
 
-        app.stage.addChild(backgroundRectangle);
-        const fractalStage = new PIXI.Graphics();
-        app.stage.addChild(fractalStage);
+    const inputIds = ["branch-length-input", "num-layers-input", "angle-input", "num-trees-input"];
+    for (let inputId of inputIds) {
+        document.getElementById(inputId).addEventListener("input", () => generateTreeFromInputs(context, midpoint), false);
+    }
 
-        const inputIds = ["branch-length-input", "num-layers-input", "angle-input", "num-trees-input"];
-        for (let inputId of inputIds) {
-            document.getElementById(inputId).addEventListener("input", () => generateTreeFromInputs(fractalStage, midpoint), false);
-        }
-
-        generateTreeFromInputs(fractalStage, midpoint);
-    })();
+    generateTreeFromInputs(context, midpoint);
 }
 
 main();

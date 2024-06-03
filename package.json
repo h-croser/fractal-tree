@@ -10,7 +10,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "pixi.js": "^8.1.5"
   },
   "devDependencies": {
     "http-server": "^14.1.1"
