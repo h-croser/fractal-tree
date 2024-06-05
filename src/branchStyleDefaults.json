@@ -1,0 +1,14 @@
+{
+  "color": {
+    "start": "#42D9C8",
+    "end": "#AD343E"
+  },
+  "width": {
+    "start": 0.2,
+    "end": 0.7
+  },
+  "length": {
+    "start": -30,
+    "end": -30
+  }
+}

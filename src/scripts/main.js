@@ -1,13 +1,17 @@
-const BRANCH_COLOR_START = "#AD343E";
-const BRANCH_COLOR_END = "#42D9C8";
+///////////
+// Style //
+///////////
+
+
+const BRANCH_COLOR_START = "#42D9C8";
+const BRANCH_COLOR_END = "#AD343E";
 const BRANCH_WIDTH_START = 0.2;
 const BRANCH_WIDTH_END = 0.7;
-// const APP_BACKGROUND_COLOR = "#121016";
 
-function buildWidthMap(startWidth, endWidth, numLayers) {
+// Width Map
+
+function buildWidthMap(widthMap, startWidth, endWidth, numLayers) {
     const widthDiff = endWidth - startWidth;
-
-    const widthMap = new Map();
     for (let currLayer = 0; currLayer < numLayers; currLayer++) {
         let width = (widthDiff * (currLayer / numLayers)) + startWidth;
         widthMap.set(currLayer, width);
@@ -16,25 +20,19 @@ function buildWidthMap(startWidth, endWidth, numLayers) {
     return widthMap;
 }
 
-function buildColorMap(startColor, endColor, numLayers) {
-    const startRGB = hexToRGB(startColor);
-    const endRGB = hexToRGB(endColor);
-    let ratio = 1.0;
+// Length Map
 
-    const colorMap = new Map();
+function buildLengthMap(lengthMap, startLength, endLength, numLayers) {
+    const lengthDiff = endLength - startLength;
     for (let currLayer = 0; currLayer < numLayers; currLayer++) {
-        const interpolatedColorRGB = [];
-        for (let i = 0; i < startRGB.length; i++) {
-            let interpolatedInt = Math.round(((endRGB[i] - startRGB[i]) * ratio) + startRGB[i]);
-            interpolatedColorRGB.push(interpolatedInt);
-        }
-        colorMap.set(currLayer, RGBtoHex(interpolatedColorRGB));
-
-        ratio *= 0.5;
+        let width = (lengthDiff * (currLayer / numLayers)) + startLength;
+        lengthMap.set(currLayer, width);
     }
 
-    return colorMap;
+    return lengthMap;
 }
+
+// Color Map
 
 function hexToRGB(colorHex) {
     const rgbColor = [];
@@ -53,83 +51,160 @@ function RGBtoHex(colorRGB) {
     return colorHex;
 }
 
+function buildColorMap(colorMap, startColor, endColor, numLayers) {
+    const startRGB = hexToRGB(startColor);
+    const endRGB = hexToRGB(endColor);
+    let ratio = 1.0;
+    for (let currLayer = 0; currLayer < numLayers; currLayer++) {
+        const interpolatedColorRGB = [];
+        for (let i = 0; i < startRGB.length; i++) {
+            let interpolatedInt = Math.round(((endRGB[i] - startRGB[i]) * ratio) + startRGB[i]);
+            interpolatedColorRGB.push(interpolatedInt);
+        }
+        colorMap.set(currLayer, RGBtoHex(interpolatedColorRGB));
+
+        ratio *= 0.5;
+    }
+
+    return colorMap;
+}
+
+
+class BranchStyleAttribute {
+    constructor(name) {
+        this._name = name;
+        this.layerMap = new Map();
+    }
+
+    getMappedValue(layer) {
+        return this.layerMap.get(layer);
+    }
+
+    get start() {
+        return localStorage.getItem(`${this._name}Start`);
+    }
+
+    set start(value) {
+        localStorage.setItem(`${this._name}Start`, value);
+    }
+
+    set startDefault(value) {
+        if (this.start === null) {
+            this.start = value;
+        }
+    }
+
+    get end() {
+        return localStorage.getItem(`${this._name}End`);
+    }
+
+    set end(value) {
+        localStorage.setItem(`${this._name}End`, value);
+    }
+
+    set endDefault(value) {
+        if (this.end === null) {
+            this.end = value;
+        }
+    }
+}
+
+class BranchStyle {
+    constructor(defaultsFilename) {
+        this.color = new BranchStyleAttribute("branchColor");
+        this.width = new BranchStyleAttribute("branchWidth");
+        this.length = new BranchStyleAttribute("branchLength");
+
+        this.initialiseStyles(defaultsFilename);
+    }
+
+    set numLayers(value) {
+        buildColorMap(this.color.layerMap, this.color.start, this.color.end, value);
+        buildWidthMap(this.width.layerMap, this.width.start, this.width.end, value);
+        buildLengthMap(this.length.layerMap, this.length.start, this.length.end, value);
+    }
+
+    async initialiseStyles(defaultsFilename) {
+        this.initialiseDefaults(defaultsFilename);
+
+    }
+
+    async initialiseDefaults(defaultsFilename) {
+        let fetchedData = await this.fetchDefaultStyles(defaultsFilename);
+        this.color.startDefault = fetchedData.color.start;
+        this.color.endDefault = fetchedData.color.end;
+        this.width.startDefault = fetchedData.width.start;
+        this.width.endDefault = fetchedData.width.end;
+        this.length.startDefault = fetchedData.length.start;
+        this.length.endDefault = fetchedData.length.end;
+    }
+
+    async fetchDefaultStyles(defaultsFilename) {
+        return fetch(defaultsFilename)
+            .then(response => response.json())
+            .catch(error => {
+                console.error("Could not load default tree styles", error);
+            });
+    }
+}
+
+/////////////////////
+// Tree generation //
+/////////////////////
+
 function toRadians(degrees) {
     return degrees * (Math.PI / 180);
 }
 
-// function generateTree(context, colorMap, widthMap, branchLength, angleOffsetConstant, angleOffset, addedOffset, currLayer, nodeX, nodeY) {
-//     if (currLayer === 0) {
-//         return;
-//     }
-//     let newLayer = currLayer - 1;
-//     // console.log(`Start: ${BRANCH_START_COLOR}, end: ${BRANCH_END_COLOR}, currLayer: ${currLayer}, totalLayers: ${totalLayers}`);
-//
-//     let leftOffset = angleOffset + angleOffsetConstant;
-//     let rightOffset = angleOffset - angleOffsetConstant;
-//     for (let offset of [leftOffset, rightOffset]) {
-//         let newX = nodeX + branchLength * Math.sin(offset + addedOffset);
-//         let newY = nodeY + branchLength * Math.cos(offset + addedOffset);
-//         generateTree(context, colorMap, widthMap, branchLength, angleOffsetConstant, offset, addedOffset, newLayer, newX, newY);
-//
-//         context.beginPath();
-//         context.moveTo(nodeX, nodeY);
-//         context.lineTo(newX, newY);
-//         context.strokeStyle = colorMap.get(newLayer);
-//         context.lineWidth = widthMap.get(newLayer);
-//         context.closePath();
-//         context.stroke();
-//
-//     }
-// }
-
-function drawLine(context, colorMap, widthMap, currCoords) {
-        context.beginPath();
-        context.moveTo(currCoords.parent.x, currCoords.parent.y);
-        context.lineTo(currCoords.x, currCoords.y);
-        context.strokeStyle = colorMap.get(currCoords.layer);
-        context.lineWidth = widthMap.get(currCoords.layer);
-        context.closePath();
-        context.stroke();
+function drawLine(context, branchStyle, currCoords) {
+    context.beginPath();
+    context.moveTo(currCoords.parent.x, currCoords.parent.y);
+    context.lineTo(currCoords.x, currCoords.y);
+    context.strokeStyle = branchStyle.color.getMappedValue(currCoords.layer);
+    context.lineWidth = branchStyle.width.getMappedValue(currCoords.layer);
+    context.closePath();
+    context.stroke();
 }
 
-function generateTree(context, colorMap, widthMap, branchLength, angleOffsetConstant, addedOffset, root) {
+function generateTree(context, branchStyle, angleOffsetConstant, addedOffset, root) {
     const queue = [root];
     let curr;
     let leftOffset;
     let rightOffset;
+    let branchLength;
     while (queue.length !== 0)  {
         curr = queue.shift();
-        drawLine(context, colorMap, widthMap, curr);
+        drawLine(context, branchStyle, curr);
         if (curr.layer <= 0) {
             continue;
         }
+        branchLength = branchStyle.length.getMappedValue(curr.layer);
         leftOffset = curr.angle + angleOffsetConstant;
         rightOffset = curr.angle - angleOffsetConstant;
         for (let offset of [leftOffset, rightOffset]) {
-            let newX = curr.x + branchLength * Math.sin(offset + addedOffset);
-            let newY = curr.y + branchLength * Math.cos(offset + addedOffset);
+            let newX = curr.x - branchLength * Math.sin(offset + addedOffset);
+            let newY = curr.y - branchLength * Math.cos(offset + addedOffset);
             let newNode = {x: newX, y: newY, angle: offset, layer: curr.layer-1, parent: curr};
             queue.push(newNode);
         }
     }
 }
 
-function generateTreeFromInputs(context, midpoint) {
+function generateTreeFromInputs(context, branchStyle, midpoint) {
     context.reset();
     let branchLength = parseInt(document.getElementById("branch-length-input").value);
     let numLayers = parseInt(document.getElementById("num-layers-input").value);
     let degreesOffset = parseInt(document.getElementById("angle-input").value);
     let numRoots = parseInt(document.getElementById("num-trees-input").value);
 
-    let colorMap = buildColorMap(BRANCH_COLOR_START, BRANCH_COLOR_END, numLayers);
-    let widthMap = buildWidthMap(BRANCH_WIDTH_START, BRANCH_WIDTH_END, numLayers);
     let currCoords = {x: midpoint[0], y: midpoint[1], angle: 0, layer: numLayers, parent: {x: midpoint[0], y: midpoint[1], angle: 0, layer: numLayers}};
 
-    branchLength = -branchLength;
+    branchStyle.numLayers = numLayers;
+
     let addedDegrees = 0;
     for (let root = 1; root <= numRoots; root++) {
         addedDegrees = (360 / numRoots) * root;
-        generateTree(context, colorMap, widthMap, branchLength, toRadians(degreesOffset), toRadians(addedDegrees), currCoords);
+        generateTree(context, branchStyle, toRadians(degreesOffset), toRadians(addedDegrees), currCoords);
     }
 }
 
@@ -139,13 +214,14 @@ function main() {
 
     const canvas = document.getElementById("fractal-container");
     const context = canvas.getContext("2d");
+    const branchStyle = new BranchStyle("./branchStyleDefaults.json");
 
     const inputIds = ["branch-length-input", "num-layers-input", "angle-input", "num-trees-input"];
     for (let inputId of inputIds) {
-        document.getElementById(inputId).addEventListener("input", () => generateTreeFromInputs(context, midpoint), false);
+        document.getElementById(inputId).addEventListener("input", () => generateTreeFromInputs(context, branchStyle, midpoint), false);
     }
 
-    generateTreeFromInputs(context, midpoint);
+    generateTreeFromInputs(context, branchStyle, midpoint);
 }
 
 main();
