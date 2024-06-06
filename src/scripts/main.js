@@ -2,37 +2,22 @@
 // Style //
 ///////////
 
+// Style Maps
 
-const BRANCH_COLOR_START = "#42D9C8";
-const BRANCH_COLOR_END = "#AD343E";
-const BRANCH_WIDTH_START = 0.2;
-const BRANCH_WIDTH_END = 0.7;
-
-// Width Map
-
-function buildWidthMap(widthMap, startWidth, endWidth, numLayers) {
-    const widthDiff = endWidth - startWidth;
-    for (let currLayer = 0; currLayer < numLayers; currLayer++) {
-        let width = (widthDiff * (currLayer / numLayers)) + startWidth;
-        widthMap.set(currLayer, width);
+function buildLinearScaledMap(attributeMap, startValue, endValue, numLayers) {
+    const valueDiff = endValue - startValue;
+    for (let currLayer = 0; currLayer <= numLayers; currLayer++) {
+        let value = (valueDiff * (currLayer / numLayers)) + startValue;
+        attributeMap.set(currLayer, value);
     }
-
-    return widthMap;
 }
 
-// Length Map
-
-function buildLengthMap(lengthMap, startLength, endLength, numLayers) {
-    const lengthDiff = endLength - startLength;
-    for (let currLayer = 0; currLayer < numLayers; currLayer++) {
-        let width = (lengthDiff * (currLayer / numLayers)) + startLength;
-        lengthMap.set(currLayer, width);
+function buildNodeSymbolMap(symbolMap, startSymbol, endSymbol, numLayers) {
+    for (let currLayer = 0; currLayer < numLayers - 1; currLayer++) {
+        symbolMap.set(currLayer, startSymbol);
     }
-
-    return lengthMap;
+    symbolMap.set(numLayers, endSymbol);
 }
-
-// Color Map
 
 function hexToRGB(colorHex) {
     const rgbColor = [];
@@ -55,7 +40,9 @@ function buildColorMap(colorMap, startColor, endColor, numLayers) {
     const startRGB = hexToRGB(startColor);
     const endRGB = hexToRGB(endColor);
     let ratio = 1.0;
-    for (let currLayer = 0; currLayer < numLayers; currLayer++) {
+
+    colorMap.set(0, endColor);
+    for (let currLayer = 1; currLayer < numLayers; currLayer++) {
         const interpolatedColorRGB = [];
         for (let i = 0; i < startRGB.length; i++) {
             let interpolatedInt = Math.round(((endRGB[i] - startRGB[i]) * ratio) + startRGB[i]);
@@ -65,15 +52,20 @@ function buildColorMap(colorMap, startColor, endColor, numLayers) {
 
         ratio *= 0.5;
     }
-
-    return colorMap;
+    colorMap.set(numLayers, startColor);
 }
 
 
-class BranchStyleAttribute {
-    constructor(name) {
+class ScalableBranchStyleAttribute {
+    constructor(name, mapBuildFunction, castFunction) {
         this._name = name;
+        this._mapBuildFunction = mapBuildFunction;
+        this._castFunction = castFunction ? castFunction : x => x;
         this.layerMap = new Map();
+    }
+
+    buildMap(numLayers) {
+        this._mapBuildFunction(this.layerMap, this.start, this.end, numLayers);
     }
 
     getMappedValue(layer) {
@@ -81,7 +73,7 @@ class BranchStyleAttribute {
     }
 
     get start() {
-        return localStorage.getItem(`${this._name}Start`);
+        return this._castFunction(localStorage.getItem(`${this._name}Start`));
     }
 
     set start(value) {
@@ -89,13 +81,14 @@ class BranchStyleAttribute {
     }
 
     set startDefault(value) {
-        if (this.start === null) {
+        let cached = this.start;
+        if ((cached === null) || (isNaN(cached))) {
             this.start = value;
         }
     }
 
     get end() {
-        return localStorage.getItem(`${this._name}End`);
+        return this._castFunction(localStorage.getItem(`${this._name}End`));
     }
 
     set end(value) {
@@ -103,7 +96,8 @@ class BranchStyleAttribute {
     }
 
     set endDefault(value) {
-        if (this.end === null) {
+        let cached = this.end;
+        if ((cached === null) || (isNaN(cached))) {
             this.end = value;
         }
     }
@@ -111,32 +105,48 @@ class BranchStyleAttribute {
 
 class BranchStyle {
     constructor(defaultsFilename) {
-        this.color = new BranchStyleAttribute("branchColor");
-        this.width = new BranchStyleAttribute("branchWidth");
-        this.length = new BranchStyleAttribute("branchLength");
+        this.defaultsFilename = defaultsFilename;
+
+        this.color = new ScalableBranchStyleAttribute("branchColor", buildColorMap, null);
+        this.width = new ScalableBranchStyleAttribute("branchWidth", buildLinearScaledMap, parseFloat);
+        this.length = new ScalableBranchStyleAttribute("branchLength", buildLinearScaledMap, parseInt);
+        this.opacity = new ScalableBranchStyleAttribute("branchOpacity", buildLinearScaledMap, parseFloat);
+        this.symbol = new ScalableBranchStyleAttribute("symbol", buildNodeSymbolMap, null);
+        this.attributesList = ["color", "width", "length", "opacity", "symbol"];
 
         this.initialiseStyles(defaultsFilename);
     }
 
     set numLayers(value) {
-        buildColorMap(this.color.layerMap, this.color.start, this.color.end, value);
-        buildWidthMap(this.width.layerMap, this.width.start, this.width.end, value);
-        buildLengthMap(this.length.layerMap, this.length.start, this.length.end, value);
+        for (let attribute of this.attributesList) {
+            this[attribute].buildMap(value);
+        }
     }
 
-    async initialiseStyles(defaultsFilename) {
-        this.initialiseDefaults(defaultsFilename);
+    async initialiseStyles() {
+        await this.initialiseDefaults(this.defaultsFilename);
+        await this.setInputValues();
+    }
 
+    async setInputValues() {
+        document.getElementById("color-start-input").value = this.color.start;
+        document.getElementById("color-end-input").value = this.color.end;
+        document.getElementById("branch-width-start-input").value = this.width.start;
+        document.getElementById("branch-width-end-input").value = this.width.end;
+        document.getElementById("branch-length-start-input").value = this.length.start;
+        document.getElementById("branch-length-end-input").value = this.length.end;
+        document.getElementById("opacity-start-input").value = this.opacity.start;
+        document.getElementById("opacity-end-input").value = this.opacity.end;
+        document.getElementById("node-symbol-select").value = this.symbol.start;
+        document.getElementById("leaf-symbol-select").value = this.symbol.end;
     }
 
     async initialiseDefaults(defaultsFilename) {
         let fetchedData = await this.fetchDefaultStyles(defaultsFilename);
-        this.color.startDefault = fetchedData.color.start;
-        this.color.endDefault = fetchedData.color.end;
-        this.width.startDefault = fetchedData.width.start;
-        this.width.endDefault = fetchedData.width.end;
-        this.length.startDefault = fetchedData.length.start;
-        this.length.endDefault = fetchedData.length.end;
+        for (let attribute of this.attributesList) {
+            this[attribute].startDefault = fetchedData[attribute].start;
+            this[attribute].endDefault = fetchedData[attribute].end;
+        }
     }
 
     async fetchDefaultStyles(defaultsFilename) {
@@ -145,6 +155,27 @@ class BranchStyle {
             .catch(error => {
                 console.error("Could not load default tree styles", error);
             });
+    }
+}
+
+function setupStyleModal() {
+    const modal = document.getElementById("styleModal");
+    const modalOpenButton = document.getElementById("modalOpenButton");
+    const modalCloseButton = document.getElementById("modelCloseButton");
+
+    modalOpenButton.onclick = function() {
+        modal.style.display = "block";
+    }
+
+    modalCloseButton.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    // Close the modal when clicking outside the modal content
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
     }
 }
 
@@ -190,22 +221,39 @@ function generateTree(context, branchStyle, angleOffsetConstant, addedOffset, ro
     }
 }
 
-function generateTreeFromInputs(context, branchStyle, midpoint) {
+function generateTreeFromInputs(context, branchStyle, midpoint, queryStyleInputs) {
     context.reset();
-    let branchLength = parseInt(document.getElementById("branch-length-input").value);
+
+    // Tree variables
     let numLayers = parseInt(document.getElementById("num-layers-input").value);
     let degreesOffset = parseInt(document.getElementById("angle-input").value);
     let numRoots = parseInt(document.getElementById("num-trees-input").value);
 
-    let currCoords = {x: midpoint[0], y: midpoint[1], angle: 0, layer: numLayers, parent: {x: midpoint[0], y: midpoint[1], angle: 0, layer: numLayers}};
+    if (queryStyleInputs){
+        // Style variables
+        branchStyle.color.start = document.getElementById("color-start-input").value;
+        branchStyle.color.end = document.getElementById("color-end-input").value;
+        branchStyle.width.start = parseFloat(document.getElementById("branch-width-start-input").value);
+        branchStyle.width.end = parseFloat(document.getElementById("branch-width-end-input").value);
+        branchStyle.length.start = parseInt(document.getElementById("branch-length-start-input").value);
+        branchStyle.length.end = parseInt(document.getElementById("branch-length-end-input").value);
+        branchStyle.symbol.start = document.getElementById("node-symbol-select").value;
+        branchStyle.symbol.end = document.getElementById("leaf-symbol-select").value;
+    }
 
     branchStyle.numLayers = numLayers;
 
+    let currCoords = {x: midpoint[0], y: midpoint[1], angle: 0, layer: numLayers, parent: {x: midpoint[0], y: midpoint[1], angle: 0, layer: numLayers, parent: null}};
     let addedDegrees = 0;
     for (let root = 1; root <= numRoots; root++) {
         addedDegrees = (360 / numRoots) * root;
         generateTree(context, branchStyle, toRadians(degreesOffset), toRadians(addedDegrees), currCoords);
     }
+}
+
+async function generateTreeWithDefaultStyle(context, branchStyle, midpoint) {
+    await branchStyle.initialiseStyles();
+    generateTreeFromInputs(context, branchStyle, midpoint, false);
 }
 
 
@@ -215,13 +263,16 @@ function main() {
     const canvas = document.getElementById("fractal-container");
     const context = canvas.getContext("2d");
     const branchStyle = new BranchStyle("./branchStyleDefaults.json");
+    setupStyleModal();
 
-    const inputIds = ["branch-length-input", "num-layers-input", "angle-input", "num-trees-input"];
+    const inputIds = ["num-layers-input", "angle-input", "num-trees-input"];
     for (let inputId of inputIds) {
-        document.getElementById(inputId).addEventListener("input", () => generateTreeFromInputs(context, branchStyle, midpoint), false);
+        document.getElementById(inputId).addEventListener("input", () => generateTreeFromInputs(context, branchStyle, midpoint, false));
     }
+    document.getElementById("apply-style-button").addEventListener("click", () => generateTreeFromInputs(context, branchStyle, midpoint, true));
+    document.getElementById("reset-default-styles-button").addEventListener("click", () => generateTreeWithDefaultStyle(context, branchStyle, midpoint));
 
-    generateTreeFromInputs(context, branchStyle, midpoint);
+    generateTreeWithDefaultStyle(context, branchStyle, midpoint);
 }
 
 main();
