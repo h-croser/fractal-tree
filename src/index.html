@@ -10,67 +10,99 @@
 <body>
 <div id="main-container">
     <canvas width="1000" height="1000" id="fractal-container"></canvas>
-    <button id="modalOpenButton">&#9881</button>
     <div id="styleModal" class="modal">
         <div class="modal-content">
             <span class="modal-close-button" id="modelCloseButton">&times;</span>
             <h2>Style controls</h2>
-            <div class="color-range">
-                <label for="color-start-input">Start color</label>
-                <input type="color" id="color-start-input" name="color-start-input">
-                <label for="color-end-input">End color</label>
-                <input type="color" id="color-end-input" name="color-end-input">
-            </div>
-            <div class="branch-length-range">
-                <label for="branch-length-start-input">Branch length</label>
-                <input type="number" id="branch-length-start-input" name="branch-length-start-input" min=1 max=100>
-                <label for="branch-length-end-input">Branch length</label>
-                <input type="number" id="branch-length-end-input" name="branch-length-end-input" min=1 max=100>
-            </div>
-            <div class="branch-width-range">
-                <label for="branch-width-start-input">Branch width</label>
-                <input type="number" id="branch-width-start-input" name="branch-width-start-input" min=0.1 max=5.0>
-                <label for="branch-width-end-input">Branch width</label>
-                <input type="number" id="branch-width-end-input" name="branch-width-end-input" min=0.1 max=5.0>
-            </div>
-            <div class="opacity-range">
-                <label for="opacity-start-input">Branch width</label>
-                <input type="number" id="opacity-start-input" name="opacity-start-input" min=0.0 max=1.0>
-                <label for="opacity-end-input">Branch width</label>
-                <input type="number" id="opacity-end-input" name="opacity-end-input" min=0.0 max=1.0>
-            </div>
-            <div class="leaf-symbol-range">
-                <label for="node-symbol-select">Node symbol</label>
-                <select name="node-symbol-select" id="node-symbol-select">
-                    <option value="">None</option>
-                    <option value="dot">Dot</option>
-                    <option value="circle">Circle</option>
-                </select>
-                <label for="leaf-symbol-select">Leaf symbol</label>
-                <select name="leaf-symbol-select" id="leaf-symbol-select">
-                    <option value="">None</option>
-                    <option value="dot">Dot</option>
-                    <option value="circle">Circle</option>
-                </select>
-            </div>
+            <table>
+                <tr>
+                    <th></th>
+                    <th>Root</th>
+                    <th>Leaf</th>
+                </tr>
+                <tr>
+                    <td>Branch color</td>
+                    <td>
+                        <label for="color-start-input"></label>
+                        <input type="color" id="color-start-input" name="color-start-input">
+                    </td>
+                    <td>
+                        <label for="color-end-input"></label>
+                        <input type="color" id="color-end-input" name="color-end-input">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Branch width</td>
+                    <td>
+                        <label for="width-start-input"></label>
+                        <input type="number" id="width-start-input" name="width-start-input" min=0.1 max=5.0 step=0.1>
+                    </td>
+                    <td>
+                        <label for="width-end-input"></label>
+                        <input type="number" id="width-end-input" name="width-end-input" min=0.1 max=5.0 step=0.1>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Branch length</td>
+                    <td>
+                        <label for="length-start-input"></label>
+                        <input type="number" id="length-start-input" name="length-start-input" min=1 max=100>
+                    </td>
+                    <td>
+                        <label for="length-end-input"></label>
+                        <input type="number" id="length-end-input" name="length-end-input" min=1 max=100>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Branch Opacity</td>
+                    <td>
+                        <label for="opacity-start-input"></label>
+                        <input type="number" id="opacity-start-input" name="opacity-start-input" min=0.0 max=1.0 step=0.1>
+                    </td>
+                    <td>
+                        <label for="opacity-end-input"></label>
+                        <input type="number" id="opacity-end-input" name="opacity-end-input" min=0.0 max=1.0 step=0.1>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Node symbol</td>
+                    <td>
+                        <label for="symbol-start-input"></label>
+                        <select name="symbol-start-input" id="symbol-start-input">
+                            <option value="">None</option>
+                            <option value="dot">Dot</option>
+                            <option value="circle">Circle</option>
+                        </select>
+                    </td>
+                    <td>
+                        <label for="symbol-end-input"></label>
+                        <select name="symbol-end-input" id="symbol-end-input">
+                            <option value="">None</option>
+                            <option value="dot">Dot</option>
+                            <option value="circle">Circle</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
             <div class="style-control-buttons">
                 <button id="apply-style-button">Apply</button>
                 <button id="reset-default-styles-button">Reset defaults</button>
             </div>
         </div>
     </div>
+    <button id="modalOpenButton">&#9881</button>
     <div id="tree-controls">
-        <label for="num-layers-input">Layers</label>
+        <label for="num-layers-input">Layer count</label>
         <div class="input-container">
-            <input type="range" id="num-layers-input" name="num-layers-input" min=1 max=20 value=5 oninput="this.nextElementSibling.value = this.value">
-            <output>5</output>
+            <input type="range" id="num-layers-input" name="num-layers-input" min=1 max=20 value=7 oninput="this.nextElementSibling.value = this.value">
+            <output>7</output>
         </div>
         <label for="angle-input">Angle</label>
         <div class="input-container">
-            <input type="range" id="angle-input" name="angle-input" min=0 max=180 value=30 oninput="this.nextElementSibling.value = this.value">
-            <output>30</output>
+            <input type="range" id="angle-input" name="angle-input" min=0 max=180 value=15 oninput="this.nextElementSibling.value = this.value">
+            <output>15</output>
         </div>
-        <label for="num-trees-input">Number of trees</label>
+        <label for="num-trees-input">Tree count</label>
         <div class="input-container">
             <input type="range" id="num-trees-input" name="num-trees-input" min=1 max=9 value=1 oninput="this.nextElementSibling.value = this.value">
             <output>1</output>

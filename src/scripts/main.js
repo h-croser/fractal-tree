@@ -6,14 +6,15 @@
 
 function buildLinearScaledMap(attributeMap, startValue, endValue, numLayers) {
     const valueDiff = endValue - startValue;
-    for (let currLayer = 0; currLayer <= numLayers; currLayer++) {
-        let value = (valueDiff * (currLayer / numLayers)) + startValue;
+    attributeMap.set(0, startValue);
+    for (let currLayer = 1; currLayer <= numLayers; currLayer++) {
+        let value = (valueDiff * ((currLayer - 1) / (numLayers - 1))) + startValue;
         attributeMap.set(currLayer, value);
     }
 }
 
 function buildNodeSymbolMap(symbolMap, startSymbol, endSymbol, numLayers) {
-    for (let currLayer = 0; currLayer < numLayers - 1; currLayer++) {
+    for (let currLayer = 0; currLayer < numLayers; currLayer++) {
         symbolMap.set(currLayer, startSymbol);
     }
     symbolMap.set(numLayers, endSymbol);
@@ -39,10 +40,10 @@ function RGBtoHex(colorRGB) {
 function buildColorMap(colorMap, startColor, endColor, numLayers) {
     const startRGB = hexToRGB(startColor);
     const endRGB = hexToRGB(endColor);
-    let ratio = 1.0;
+    let ratio = 0.5;
 
-    colorMap.set(0, endColor);
-    for (let currLayer = 1; currLayer < numLayers; currLayer++) {
+    colorMap.set(numLayers, endColor);
+    for (let currLayer = numLayers - 1; currLayer > 1; currLayer--) {
         const interpolatedColorRGB = [];
         for (let i = 0; i < startRGB.length; i++) {
             let interpolatedInt = Math.round(((endRGB[i] - startRGB[i]) * ratio) + startRGB[i]);
@@ -52,7 +53,8 @@ function buildColorMap(colorMap, startColor, endColor, numLayers) {
 
         ratio *= 0.5;
     }
-    colorMap.set(numLayers, startColor);
+    colorMap.set(1, startColor);
+    colorMap.set(0, startColor);
 }
 
 
@@ -80,7 +82,7 @@ class ScalableBranchStyleAttribute {
         localStorage.setItem(`${this._name}Start`, value);
     }
 
-    set startDefault(value) {
+    set startIfNoCache(value) {
         let cached = this.start;
         if ((cached === null) || (isNaN(cached))) {
             this.start = value;
@@ -95,7 +97,7 @@ class ScalableBranchStyleAttribute {
         localStorage.setItem(`${this._name}End`, value);
     }
 
-    set endDefault(value) {
+    set endIfNoCache(value) {
         let cached = this.end;
         if ((cached === null) || (isNaN(cached))) {
             this.end = value;
@@ -114,7 +116,7 @@ class BranchStyle {
         this.symbol = new ScalableBranchStyleAttribute("symbol", buildNodeSymbolMap, null);
         this.attributesList = ["color", "width", "length", "opacity", "symbol"];
 
-        this.initialiseStyles(defaultsFilename);
+        this.initialiseStyles(false);
     }
 
     set numLayers(value) {
@@ -123,38 +125,33 @@ class BranchStyle {
         }
     }
 
-    async initialiseStyles() {
-        await this.initialiseDefaults(this.defaultsFilename);
+    async initialiseStyles(forceOverwrite) {
+        await this.initialiseDefaults(forceOverwrite);
         await this.setInputValues();
     }
 
     async setInputValues() {
-        document.getElementById("color-start-input").value = this.color.start;
-        document.getElementById("color-end-input").value = this.color.end;
-        document.getElementById("branch-width-start-input").value = this.width.start;
-        document.getElementById("branch-width-end-input").value = this.width.end;
-        document.getElementById("branch-length-start-input").value = this.length.start;
-        document.getElementById("branch-length-end-input").value = this.length.end;
-        document.getElementById("opacity-start-input").value = this.opacity.start;
-        document.getElementById("opacity-end-input").value = this.opacity.end;
-        document.getElementById("node-symbol-select").value = this.symbol.start;
-        document.getElementById("leaf-symbol-select").value = this.symbol.end;
-    }
-
-    async initialiseDefaults(defaultsFilename) {
-        let fetchedData = await this.fetchDefaultStyles(defaultsFilename);
         for (let attribute of this.attributesList) {
-            this[attribute].startDefault = fetchedData[attribute].start;
-            this[attribute].endDefault = fetchedData[attribute].end;
+            document.getElementById(`${attribute}-start-input`).value = this[attribute].start;
+            document.getElementById(`${attribute}-end-input`).value = this[attribute].end;
         }
     }
 
-    async fetchDefaultStyles(defaultsFilename) {
-        return fetch(defaultsFilename)
+    async initialiseDefaults(forceOverwrite) {
+        let fetchedData = await fetch(this.defaultsFilename)
             .then(response => response.json())
             .catch(error => {
                 console.error("Could not load default tree styles", error);
             });
+        for (let attribute of this.attributesList) {
+            if (forceOverwrite) {
+                this[attribute].start = fetchedData[attribute].start;
+                this[attribute].end = fetchedData[attribute].end;
+            } else {
+                this[attribute].startIfNoCache = fetchedData[attribute].start;
+                this[attribute].endIfNoCache = fetchedData[attribute].end;
+            }
+        }
     }
 }
 
@@ -191,13 +188,14 @@ function drawLine(context, branchStyle, currCoords) {
     context.beginPath();
     context.moveTo(currCoords.parent.x, currCoords.parent.y);
     context.lineTo(currCoords.x, currCoords.y);
+    context.globalAlpha = branchStyle.opacity.getMappedValue(currCoords.layer);
     context.strokeStyle = branchStyle.color.getMappedValue(currCoords.layer);
     context.lineWidth = branchStyle.width.getMappedValue(currCoords.layer);
-    context.closePath();
+    context.lineJoin = "round";
     context.stroke();
 }
 
-function generateTree(context, branchStyle, angleOffsetConstant, addedOffset, root) {
+function generateTree(context, branchStyle, numLayers, angleOffsetConstant, addedOffset, root) {
     const queue = [root];
     let curr;
     let leftOffset;
@@ -206,7 +204,7 @@ function generateTree(context, branchStyle, angleOffsetConstant, addedOffset, ro
     while (queue.length !== 0)  {
         curr = queue.shift();
         drawLine(context, branchStyle, curr);
-        if (curr.layer <= 0) {
+        if (curr.layer >= numLayers) {
             continue;
         }
         branchLength = branchStyle.length.getMappedValue(curr.layer);
@@ -215,13 +213,13 @@ function generateTree(context, branchStyle, angleOffsetConstant, addedOffset, ro
         for (let offset of [leftOffset, rightOffset]) {
             let newX = curr.x - branchLength * Math.sin(offset + addedOffset);
             let newY = curr.y - branchLength * Math.cos(offset + addedOffset);
-            let newNode = {x: newX, y: newY, angle: offset, layer: curr.layer-1, parent: curr};
+            let newNode = {x: newX, y: newY, angle: offset, layer: curr.layer + 1, parent: curr};
             queue.push(newNode);
         }
     }
 }
 
-function generateTreeFromInputs(context, branchStyle, midpoint, queryStyleInputs) {
+function generateTreeFromInputs(context, branchStyle, midpoint) {
     context.reset();
 
     // Tree variables
@@ -229,31 +227,35 @@ function generateTreeFromInputs(context, branchStyle, midpoint, queryStyleInputs
     let degreesOffset = parseInt(document.getElementById("angle-input").value);
     let numRoots = parseInt(document.getElementById("num-trees-input").value);
 
-    if (queryStyleInputs){
-        // Style variables
-        branchStyle.color.start = document.getElementById("color-start-input").value;
-        branchStyle.color.end = document.getElementById("color-end-input").value;
-        branchStyle.width.start = parseFloat(document.getElementById("branch-width-start-input").value);
-        branchStyle.width.end = parseFloat(document.getElementById("branch-width-end-input").value);
-        branchStyle.length.start = parseInt(document.getElementById("branch-length-start-input").value);
-        branchStyle.length.end = parseInt(document.getElementById("branch-length-end-input").value);
-        branchStyle.symbol.start = document.getElementById("node-symbol-select").value;
-        branchStyle.symbol.end = document.getElementById("leaf-symbol-select").value;
-    }
-
     branchStyle.numLayers = numLayers;
 
-    let currCoords = {x: midpoint[0], y: midpoint[1], angle: 0, layer: numLayers, parent: {x: midpoint[0], y: midpoint[1], angle: 0, layer: numLayers, parent: null}};
+    let currCoords = {x: midpoint[0], y: midpoint[1], angle: 0, layer: 0, parent: {x: midpoint[0], y: midpoint[1], angle: 0, layer: 0, parent: null}};
     let addedDegrees = 0;
     for (let root = 1; root <= numRoots; root++) {
         addedDegrees = (360 / numRoots) * root;
-        generateTree(context, branchStyle, toRadians(degreesOffset), toRadians(addedDegrees), currCoords);
+        generateTree(context, branchStyle, numLayers, toRadians(degreesOffset), toRadians(addedDegrees), currCoords);
     }
 }
 
+function generateTreeFromStyleInputs(context, branchStyle, midpoint) {
+    // Style variables
+    branchStyle.color.start = document.getElementById("color-start-input").value;
+    branchStyle.color.end = document.getElementById("color-end-input").value;
+    branchStyle.width.start = parseFloat(document.getElementById("width-start-input").value);
+    branchStyle.width.end = parseFloat(document.getElementById("width-end-input").value);
+    branchStyle.length.start = parseInt(document.getElementById("length-start-input").value);
+    branchStyle.length.end = parseInt(document.getElementById("length-end-input").value);
+    branchStyle.opacity.start = parseFloat(document.getElementById("opacity-start-input").value);
+    branchStyle.opacity.end = parseFloat(document.getElementById("opacity-end-input").value);
+    branchStyle.symbol.start = document.getElementById("symbol-start-input").value;
+    branchStyle.symbol.end = document.getElementById("symbol-end-input").value;
+
+    generateTreeFromInputs(context, branchStyle, midpoint);
+}
+
 async function generateTreeWithDefaultStyle(context, branchStyle, midpoint) {
-    await branchStyle.initialiseStyles();
-    generateTreeFromInputs(context, branchStyle, midpoint, false);
+    await branchStyle.initialiseStyles(true);
+    generateTreeFromInputs(context, branchStyle, midpoint);
 }
 
 
@@ -267,9 +269,9 @@ function main() {
 
     const inputIds = ["num-layers-input", "angle-input", "num-trees-input"];
     for (let inputId of inputIds) {
-        document.getElementById(inputId).addEventListener("input", () => generateTreeFromInputs(context, branchStyle, midpoint, false));
+        document.getElementById(inputId).addEventListener("input", () => generateTreeFromInputs(context, branchStyle, midpoint));
     }
-    document.getElementById("apply-style-button").addEventListener("click", () => generateTreeFromInputs(context, branchStyle, midpoint, true));
+    document.getElementById("apply-style-button").addEventListener("click", () => generateTreeFromStyleInputs(context, branchStyle, midpoint));
     document.getElementById("reset-default-styles-button").addEventListener("click", () => generateTreeWithDefaultStyle(context, branchStyle, midpoint));
 
     generateTreeWithDefaultStyle(context, branchStyle, midpoint);

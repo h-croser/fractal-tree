@@ -1,11 +1,11 @@
 {
   "color": {
-    "start": "#42D9C8",
-    "end": "#AD343E"
+    "start": "#AD343E",
+    "end": "#42D9C8"
   },
   "width": {
-    "start": 0.2,
-    "end": 0.7
+    "start": 1,
+    "end": 1
   },
   "length": {
     "start": 30,
