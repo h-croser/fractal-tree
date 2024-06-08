@@ -160,8 +160,12 @@ class AnimationHandler {
     }
 
     generateTreeAnimation = async () => {
-        const framesPerSecond = parseFloat(this.framesInputElement.value);
-        const frameBufTime = 1000 / framesPerSecond;
+        if (this._running) {
+            return;
+        }
+        this._running = true;
+        const framesPerSecond = Math.max(parseFloat(this.framesInputElement.value), 1);
+        const millisecondsPerFrame = 1000 / framesPerSecond;
 
         const changingInputId = this.typeInputElement.value;
         const changingInputElement = document.getElementById(changingInputId);
@@ -170,23 +174,38 @@ class AnimationHandler {
         const max = parseInt(changingInputElement.max);
         const range = this._create_range_array(min, max);
         const event = new Event("input");
+
+        let lastFrame = new Date().getTime();
+        let currTime;
+        let timeDelta;
+        let framesSkipped = 0;
         while (true) {
             if (!this._running) {
                 break;
             }
+
             for (let i of range) {
+                currTime = new Date().getTime();
+                timeDelta = currTime - lastFrame;
+                if (timeDelta < (millisecondsPerFrame * framesSkipped)) {
+                    await sleep(millisecondsPerFrame - timeDelta);
+                } else if (timeDelta > (millisecondsPerFrame * framesSkipped)) {
+                    framesSkipped += 1;
+                    continue;
+                }
+                lastFrame = currTime;
+                framesSkipped = 0;
+
                 if (!this._running) {
                     break;
                 }
                 changingInputElement.value = i;
                 changingInputElement.dispatchEvent(event);
-                await sleep(frameBufTime);
             }
         }
     }
 
     start = async () => {
-        this._running = true;
         await this.generateTreeAnimation();
     }
 
