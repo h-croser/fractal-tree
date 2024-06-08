@@ -1,4 +1,3 @@
-
 function buildLinearScaledMap(attributeMap, startValue, endValue, numLayers) {
     const valueDiff = endValue - startValue;
     attributeMap.set(0, startValue);
@@ -8,7 +7,7 @@ function buildLinearScaledMap(attributeMap, startValue, endValue, numLayers) {
     }
 }
 
-function buildNodeSymbolMap(symbolMap, startSymbol, endSymbol, numLayers) {
+function buildNodeMap(symbolMap, startSymbol, endSymbol, numLayers) {
     for (let currLayer = 0; currLayer < numLayers; currLayer++) {
         symbolMap.set(currLayer, startSymbol);
     }
@@ -100,7 +99,7 @@ class ScalableBranchStyleAttribute {
     }
 }
 
-class BranchStyle {
+export class BranchStyle {
     constructor(defaultsFilename) {
         this.defaultsFilename = defaultsFilename;
 
@@ -108,8 +107,9 @@ class BranchStyle {
         this.width = new ScalableBranchStyleAttribute("branchWidth", buildLinearScaledMap, parseFloat);
         this.length = new ScalableBranchStyleAttribute("branchLength", buildLinearScaledMap, parseInt);
         this.opacity = new ScalableBranchStyleAttribute("branchOpacity", buildLinearScaledMap, parseFloat);
-        this.symbol = new ScalableBranchStyleAttribute("symbol", buildNodeSymbolMap, null);
-        this.attributesList = ["color", "width", "length", "opacity", "symbol"];
+        this.symbol = new ScalableBranchStyleAttribute("symbol", buildNodeMap, null);
+        this.symbolColor = new ScalableBranchStyleAttribute("symbolColor", buildNodeMap, null);
+        this.attributesList = ["color", "width", "length", "opacity", "symbol", "symbolColor"];
 
         this.initialiseStyles(false);
     }
@@ -146,27 +146,6 @@ class BranchStyle {
                 this[attribute].startIfNoCache = fetchedData[attribute].start;
                 this[attribute].endIfNoCache = fetchedData[attribute].end;
             }
-        }
-    }
-}
-
-function setupStyleModal() {
-    const modal = document.getElementById("styleModal");
-    const modalOpenButton = document.getElementById("modalOpenButton");
-    const modalCloseButton = document.getElementById("modelCloseButton");
-
-    modalOpenButton.onclick = function() {
-        modal.style.display = "block";
-    }
-
-    modalCloseButton.onclick = function() {
-        modal.style.display = "none";
-    }
-
-    // Close the modal when clicking outside the modal content
-    window.onclick = function(event) {
-        if (event.target === modal) {
-            modal.style.display = "none";
         }
     }
 }

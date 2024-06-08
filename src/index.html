@@ -86,6 +86,17 @@
                         </select>
                     </td>
                 </tr>
+                <tr>
+                    <td>Node symbol color</td>
+                    <td>
+                        <label for="symbolColor-start-input"></label>
+                        <input type="color" id="symbolColor-start-input" name="symbolColor-start-input">
+                    </td>
+                    <td>
+                        <label for="symbolColor-end-input"></label>
+                        <input type="color" id="symbolColor-end-input" name="symbolColor-end-input">
+                    </td>
+                </tr>
             </table>
             <div class="style-control-buttons">
                 <button id="apply-style-button">Apply</button>
@@ -97,7 +108,7 @@
     <div id="tree-controls">
         <label for="num-layers-input">Layer count</label>
         <div class="input-container">
-            <input type="range" id="num-layers-input" name="num-layers-input" min=1 max=20 value=7 oninput="this.nextElementSibling.value = this.value">
+            <input type="range" id="num-layers-input" name="num-layers-input" min=1 max=15 value=7 oninput="this.nextElementSibling.value = this.value">
             <output>7</output>
         </div>
         <label for="angle-input">Angle</label>
@@ -109,6 +120,14 @@
         <div class="input-container">
             <input type="range" id="num-trees-input" name="num-trees-input" min=1 max=9 value=1 oninput="this.nextElementSibling.value = this.value">
             <output>1</output>
+        </div>
+        <div class="input-container">
+            <label for="animation-type-input"></label>
+            <select name="animation-type-input" id="animation-type-input">
+                <option value="">Angle</option>
+                <option value="dot">Tree count</option>
+                <option value="circle">Layer count</option>
+            </select>
         </div>
     </div>
 </div>

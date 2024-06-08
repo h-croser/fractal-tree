@@ -18,5 +18,9 @@
   "symbol": {
     "start": "",
     "end": ""
+  },
+  "symbolColor": {
+    "start": "#FFFFFF",
+    "end": "#FFFFFF"
   }
 }
