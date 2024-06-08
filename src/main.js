@@ -9,6 +9,10 @@ import { BranchStyle } from "./treeStyle";
 
 const fullRadians = 2 * Math.PI;
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 
 /////////////////////
 // Tree generation //
@@ -68,11 +72,11 @@ function generateTree(context, branchStyle, numLayers, angleOffsetConstant, adde
         drawLine(context, branchStyle, curr);
         if (curr.layer < numLayers) {
             branchLength = branchStyle.length.getMappedValue(curr.layer);
-            leftOffset = curr.angle + angleOffsetConstant + addedOffset;
-            rightOffset = curr.angle - angleOffsetConstant + addedOffset;
+            leftOffset = curr.angle + angleOffsetConstant;
+            rightOffset = curr.angle - angleOffsetConstant;
             for (offset of [leftOffset, rightOffset]) {
-                newX = curr.x - branchLength * Math.sin(offset);
-                newY = curr.y - branchLength * Math.cos(offset);
+                newX = curr.x - branchLength * Math.sin(offset + addedOffset);
+                newY = curr.y - branchLength * Math.cos(offset + addedOffset);
                 newNode = {x: newX, y: newY, angle: offset, layer: curr.layer + 1, parent: curr};
                 queue.push(newNode);
             }
@@ -136,6 +140,61 @@ function setupStyleModal() {
     }
 }
 
+class AnimationHandler {
+    constructor(framesInputId, typeInputId) {
+        this.framesInputElement = document.getElementById(framesInputId);
+        this.typeInputElement = document.getElementById(typeInputId);
+        this._running = false;
+    }
+
+    _create_range_array(min, max) {
+        const range = [];
+        for (let i = min; i < max; i++) {
+            range.push(i);
+        }
+        for (let i = max; i > min; i--) {
+            range.push(i);
+        }
+
+        return range;
+    }
+
+    generateTreeAnimation = async () => {
+        const framesPerSecond = parseFloat(this.framesInputElement.value);
+        const frameBufTime = 1000 / framesPerSecond;
+
+        const changingInputId = this.typeInputElement.value;
+        const changingInputElement = document.getElementById(changingInputId);
+
+        const min = parseInt(changingInputElement.min);
+        const max = parseInt(changingInputElement.max);
+        const range = this._create_range_array(min, max);
+        const event = new Event("input");
+        while (true) {
+            if (!this._running) {
+                break;
+            }
+            for (let i of range) {
+                if (!this._running) {
+                    break;
+                }
+                changingInputElement.value = i;
+                changingInputElement.dispatchEvent(event);
+                await sleep(frameBufTime);
+            }
+        }
+    }
+
+    start = async () => {
+        this._running = true;
+        await this.generateTreeAnimation();
+    }
+
+    stop = async () => {
+        this._running = false;
+    }
+}
+
 
 function main() {
     const canvas = document.getElementById("fractal-container");
@@ -151,6 +210,7 @@ function main() {
 
     const branchStyle = new BranchStyle("./branchStyleDefaults.json");
     setupStyleModal();
+    const animationHandler = new AnimationHandler("animation-frames-input", "animation-type-input");
 
     const inputIds = ["num-layers-input", "angle-input", "num-trees-input"];
     for (let inputId of inputIds) {
@@ -158,6 +218,8 @@ function main() {
     }
     document.getElementById("apply-style-button").addEventListener("click", () => generateTreeFromStyleInputs(context, branchStyle));
     document.getElementById("reset-default-styles-button").addEventListener("click", () => generateTreeWithDefaultStyle(context, branchStyle));
+    document.getElementById("run-animation-button").addEventListener("click", animationHandler.start);
+    document.getElementById("stop-animation-button").addEventListener("click", animationHandler.stop);
 
     generateTreeWithDefaultStyle(context, branchStyle);
 }

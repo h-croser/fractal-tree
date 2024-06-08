@@ -21,28 +21,57 @@ body {
 }
 
 #tree-controls {
+    width: 750px;
     background-color: #8ba0a4;
     border: 2px solid #eaeaea;
     padding: 20px;
     margin: 20px auto;
     border-radius: 20px;
     font-weight: 700;
+    display: flex;
+    flex-direction: column;
 }
 
-.input-container {
+.input-output-container {
     display: flex;
-    align-items: center;
-    justify-content: start;
+    flex-direction: row;
 }
 
 .input-container input[type=range] {
-    margin: 10px 0;
-    width: 800px;
+    display: flex;
+    cursor: pointer;
+    width: 700px;
     background: transparent;
+    accent-color: coral;
 }
 
-output {
-    margin: 0 5px;
+.input-container output {
+    display: flex;
+}
+
+.input-container datalist {
+    display: flex;
+    margin: -4px 0 0 0;
+    width: 700px;
+    font-weight: 400;
+}
+
+.input-container option {
+    display: inline-block;
+    width: calc((100% - 12px) / (var(--list-length) - 1));
+}
+.input-container datalist option {
+    display: inline-block;
+    width: calc((100% - 12px) / (var(--list-length) - 1));
+    text-align: center;
+}
+.input-container datalist option:first-child {
+    width: calc((100% - 12px) / ((var(--list-length) - 1) * 2) + 6px);
+    text-align: left;
+}
+.input-container datalist option:last-child {
+    width: calc((100% - 12px) / ((var(--list-length) - 1) * 2) + 6px);
+    text-align: right;
 }
 
 /* Style settings modal */
@@ -52,15 +81,7 @@ output {
     left: 20px;
     bottom: 20px;
     z-index: 1;
-    width: fit-content;
-    height: fit-content;
-    padding: 2px 8px;
-    background-color: #d74a49;
-    border: 2px solid #eaeaea;
-    border-radius: 10px;
-    color: white;
     font-size: 35px;
-    cursor: pointer;
 }
 
 .modal {
@@ -97,6 +118,26 @@ output {
     cursor: pointer;
 }
 
-.modal input[type=number] {
+input[type=number] {
     width: 50px;
+}
+
+button {
+    width: fit-content;
+    height: fit-content;
+    padding: 2px 8px;
+    background-color: #d74a49;
+    border: 2px solid #eaeaea;
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+  background-color: #bb1c1b;
+}
+
+.animation-input-container input {
+    margin-right: 10px;
 }
