@@ -225,17 +225,15 @@ class AnimationHandler {
     }
 }
 
-function canvasResizeAndDraw(context, branchStyle) {
-    const treeControlsY = document.getElementById("tree-controls").getBoundingClientRect().top;
+function canvasResizeAndDraw(context, branchStyle, draw) {
     const canvas = document.getElementById("fractal-container");
 
+    canvas.width = window.innerWidth * 0.95;
+    canvas.height = window.innerHeight * 0.95;
 
-    const scaleX = (window.innerWidth / canvas.width) * 0.95;
-    const scaleY = (treeControlsY / canvas.height) * 0.95;
-
-    canvas.width *= scaleX;
-    canvas.height *= scaleY;
-    generateTreeFromStyleInputs(context, branchStyle);
+    if (draw) {
+        generateTreeFromStyleInputs(context, branchStyle);
+    }
 }
 
 
@@ -256,8 +254,9 @@ function main() {
     document.getElementById("run-animation-button").addEventListener("click", animationHandler.start);
     document.getElementById("stop-animation-button").addEventListener("click", animationHandler.stop);
 
-    // window.addEventListener('resize', () => canvasResizeAndDraw(context, branchStyle));
+    window.addEventListener('resize', () => canvasResizeAndDraw(context, branchStyle, true));
 
+    canvasResizeAndDraw(context, branchStyle, false)
     generateTreeWithDefaultStyle(context, branchStyle);
 }
 
