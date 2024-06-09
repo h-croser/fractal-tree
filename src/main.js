@@ -256,7 +256,7 @@ function main() {
     document.getElementById("run-animation-button").addEventListener("click", animationHandler.start);
     document.getElementById("stop-animation-button").addEventListener("click", animationHandler.stop);
 
-    window.addEventListener('resize', () => canvasResizeAndDraw(context, branchStyle));
+    // window.addEventListener('resize', () => canvasResizeAndDraw(context, branchStyle));
 
     generateTreeWithDefaultStyle(context, branchStyle);
 }
