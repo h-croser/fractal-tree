@@ -21,11 +21,14 @@ body {
 }
 
 #tree-controls {
-    width: 750px;
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 20px;
+    width: 75vw;
     background-color: #8ba0a4;
     border: 2px solid #eaeaea;
-    padding: 20px;
-    margin: 20px auto;
     border-radius: 20px;
     font-weight: 700;
     display: flex;
@@ -40,7 +43,7 @@ body {
 .input-container input[type=range] {
     display: flex;
     cursor: pointer;
-    width: 700px;
+    width: 95%;
     background: transparent;
     accent-color: coral;
 }
@@ -52,7 +55,7 @@ body {
 .input-container datalist {
     display: flex;
     margin: -4px 0 0 0;
-    width: 700px;
+    width: 95%;
     font-weight: 400;
 }
 

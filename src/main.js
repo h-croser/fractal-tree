@@ -107,7 +107,18 @@ function generateTreeFromInputs(context, branchStyle) {
 
 function generateTreeFromStyleInputs(context, branchStyle) {
     for (let attribute of branchStyle.attributesList) {
-        branchStyle[attribute].start = document.getElementById(`${attribute}-start-input`).value;
+        let inputStartElement = document.getElementById(`${attribute}-start-input`);
+        if ((inputStartElement.hasAttribute('min')) && (inputStartElement.value > inputStartElement.min)) {
+            branchStyle[attribute].start = inputStartElement.min;
+        } else {
+            branchStyle[attribute].start = inputStartElement.value;
+        }
+        let inputEndElement = document.getElementById(`${attribute}-end-input`);
+        if ((inputEndElement.hasAttribute('max')) && (inputEndElement.value > inputEndElement.max)) {
+            branchStyle[attribute].end = inputEndElement.max;
+        } else {
+            branchStyle[attribute].end = inputEndElement.value;
+        }
         branchStyle[attribute].end = document.getElementById(`${attribute}-end-input`).value;
     }
 
@@ -214,18 +225,19 @@ class AnimationHandler {
     }
 }
 
+function canvasResizeAndDraw(context, branchStyle) {
+    const treeControlsY = document.getElementById("tree-controls").getBoundingClientRect().top;
+    const canvas = document.getElementById("fractal-container");
+
+    canvas.width = window.innerWidth * 0.95;
+    canvas.height = treeControlsY * 0.95;
+    generateTreeFromStyleInputs(context, branchStyle);
+}
+
 
 function main() {
     const canvas = document.getElementById("fractal-container");
     const context = canvas.getContext("2d");
-    // const scaleX = (window.innerWidth / canvas.width) * 0.75;
-    // const scaleY = (window.innerHeight / canvas.height) * 0.75;
-    //
-    // const scaleToFit = Math.min(scaleX, scaleY);
-    // const scaleToCover = Math.max(scaleX, scaleY);
-
-    // document.getElementById("fractal-container").style.transformOrigin = "0 0"; //scale from top left
-    // document.getElementById("fractal-container").style.transform = `scale(${scaleToFit})`;
 
     const branchStyle = new BranchStyle("./branchStyleDefaults.json");
     setupStyleModal();
@@ -240,6 +252,8 @@ function main() {
     document.getElementById("run-animation-button").addEventListener("click", animationHandler.start);
     document.getElementById("stop-animation-button").addEventListener("click", animationHandler.stop);
 
+    window.addEventListener('resize', () => canvasResizeAndDraw(context, branchStyle));
+    canvasResizeAndDraw(context, branchStyle);
     generateTreeWithDefaultStyle(context, branchStyle);
 }
 
