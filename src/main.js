@@ -253,7 +253,7 @@ function main() {
     document.getElementById("stop-animation-button").addEventListener("click", animationHandler.stop);
 
     window.addEventListener('resize', () => canvasResizeAndDraw(context, branchStyle));
-    canvasResizeAndDraw(context, branchStyle);
+    
     generateTreeWithDefaultStyle(context, branchStyle);
 }
 
