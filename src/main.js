@@ -229,10 +229,10 @@ function canvasResizeAndDraw(context, branchStyle, draw) {
     const canvas = document.getElementById("fractal-container");
 
     const scaleFactor = 0.95;
-    const scaleX = window.innerWidth / canvas.width * scaleFactor;
-    const scaleY = window.innerWidth / canvas.height * scaleFactor;
-    
-    canvas.style.transform = `scale(${scaleX}, ${scaleY})`;
+    const smallerDimension = Math.min(window.innerWidth, window.innerHeight) * scaleFactor;
+
+    canvas.style.width = `${smallerDimension}px`;
+    canvas.style.height = `${smallerDimension}px`;
     canvas.style.transformOrigin = '0 0';
 
     if (draw) {
