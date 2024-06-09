@@ -231,7 +231,7 @@ function canvasResizeAndDraw(context, branchStyle) {
 
     canvas.width = window.innerWidth * 0.95;
     canvas.height = treeControlsY * 0.95;
-    generateTreeFromStyleInputs(context, branchStyle);
+    // generateTreeFromStyleInputs(context, branchStyle);
 }
 
 
