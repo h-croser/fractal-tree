@@ -228,8 +228,12 @@ class AnimationHandler {
 function canvasResizeAndDraw(context, branchStyle, draw) {
     const canvas = document.getElementById("fractal-container");
 
-    canvas.width = window.innerWidth * 0.95;
-    canvas.height = window.innerHeight * 0.95;
+    const scaleFactor = 0.95;
+    const scaleX = window.innerWidth / canvas.width * scaleFactor;
+    const scaleY = window.innerHeight / canvas.height * scaleFactor;
+    
+    canvas.style.transform = `scale(${scaleX}, ${scaleY})`;
+    canvas.style.transformOrigin = '0 0';
 
     if (draw) {
         generateTreeFromStyleInputs(context, branchStyle);
