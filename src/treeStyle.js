@@ -56,7 +56,7 @@ class ScalableBranchStyleAttribute {
     constructor(name, mapBuildFunction, castFunction) {
         this._name = name;
         this._mapBuildFunction = mapBuildFunction;
-        this._castFunction = castFunction ? castFunction : x => x;
+        this.castFunction = castFunction ? castFunction : x => x;
         this.layerMap = new Map();
     }
 
@@ -69,7 +69,7 @@ class ScalableBranchStyleAttribute {
     }
 
     get start() {
-        return this._castFunction(localStorage.getItem(`${this._name}Start`));
+        return this.castFunction(localStorage.getItem(`${this._name}Start`));
     }
 
     set start(value) {
@@ -84,7 +84,7 @@ class ScalableBranchStyleAttribute {
     }
 
     get end() {
-        return this._castFunction(localStorage.getItem(`${this._name}End`));
+        return this.castFunction(localStorage.getItem(`${this._name}End`));
     }
 
     set end(value) {

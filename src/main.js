@@ -6,12 +6,10 @@
 
 import Deque from "double-ended-queue";
 import { BranchStyle } from "./treeStyle";
+import { AnimationHandler } from "./animation";
 
 const fullRadians = 2 * Math.PI;
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+const radiansFactor = Math.PI / 180;
 
 
 /////////////////////
@@ -19,7 +17,7 @@ function sleep(ms) {
 /////////////////////
 
 function toRadians(degrees) {
-    return degrees * (Math.PI / 180);
+    return degrees * radiansFactor;
 }
 
 function drawDot(context, branchStyle, currCoords) {
@@ -108,18 +106,31 @@ function generateTreeFromInputs(context, branchStyle) {
 function generateTreeFromStyleInputs(context, branchStyle) {
     for (let attribute of branchStyle.attributesList) {
         let inputStartElement = document.getElementById(`${attribute}-start-input`);
-        if ((inputStartElement.hasAttribute('min')) && (inputStartElement.value > inputStartElement.min)) {
-            branchStyle[attribute].start = inputStartElement.min;
+        let inputStartValue = branchStyle[attribute].castFunction(inputStartElement.value);
+        if ((inputStartElement.hasAttribute('min')) && (inputStartElement.hasAttribute('max'))) {
+            if (inputStartValue < inputStartElement.min) {
+                branchStyle[attribute].start = inputStartElement.min;
+            } else if (inputStartValue > inputStartElement.max) {
+                branchStyle[attribute].start = inputStartElement.max;
+            } else {
+                branchStyle[attribute].start = inputStartValue;
+            }
         } else {
-            branchStyle[attribute].start = inputStartElement.value;
+            branchStyle[attribute].start = inputStartValue;
         }
         let inputEndElement = document.getElementById(`${attribute}-end-input`);
-        if ((inputEndElement.hasAttribute('max')) && (inputEndElement.value > inputEndElement.max)) {
-            branchStyle[attribute].end = inputEndElement.max;
+        let inputEndValue = branchStyle[attribute].castFunction(inputEndElement.value);
+        if ((inputEndElement.hasAttribute('min')) && (inputEndElement.hasAttribute('max'))) {
+            if (inputEndValue < inputEndElement.min) {
+                branchStyle[attribute].end = inputEndElement.min;
+            } else if (inputEndValue > inputEndElement.max) {
+                branchStyle[attribute].end = inputEndElement.max;
+            } else {
+                branchStyle[attribute].end = inputEndValue;
+            }
         } else {
-            branchStyle[attribute].end = inputEndElement.value;
+            branchStyle[attribute].end = inputEndValue;
         }
-        branchStyle[attribute].end = document.getElementById(`${attribute}-end-input`).value;
     }
 
     generateTreeFromInputs(context, branchStyle);
@@ -148,80 +159,6 @@ function setupStyleModal() {
         if (event.target === modal) {
             modal.style.display = "none";
         }
-    }
-}
-
-class AnimationHandler {
-    constructor(framesInputId, typeInputId) {
-        this.framesInputElement = document.getElementById(framesInputId);
-        this.typeInputElement = document.getElementById(typeInputId);
-        this._running = false;
-    }
-
-    _create_range_array(min, max) {
-        const range = [];
-        for (let i = min; i < max; i++) {
-            range.push(i);
-        }
-        for (let i = max; i > min; i--) {
-            range.push(i);
-        }
-
-        return range;
-    }
-
-    generateTreeAnimation = async () => {
-        if (this._running) {
-            return;
-        }
-        this._running = true;
-        const framesPerSecond = Math.max(parseFloat(this.framesInputElement.value), 1);
-        const millisecondsPerFrame = 1000 / framesPerSecond;
-
-        const changingInputId = this.typeInputElement.value;
-        const changingInputElement = document.getElementById(changingInputId);
-
-        const min = parseInt(changingInputElement.min);
-        const max = parseInt(changingInputElement.max);
-        const range = this._create_range_array(min, max);
-        const event = new Event("input");
-
-        let lastFrame = new Date().getTime();
-        let currTime;
-        let timeDelta;
-        let framesSkipped = 0;
-        while (true) {
-            if (!this._running) {
-                break;
-            }
-
-            for (let i of range) {
-                currTime = new Date().getTime();
-                timeDelta = currTime - lastFrame;
-                if (timeDelta < (millisecondsPerFrame * framesSkipped)) {
-                    await sleep(millisecondsPerFrame - timeDelta);
-                } else if (timeDelta > (millisecondsPerFrame * framesSkipped)) {
-                    framesSkipped += 1;
-                    continue;
-                }
-                lastFrame = currTime;
-                framesSkipped = 0;
-
-                if (!this._running) {
-                    break;
-                }
-                changingInputElement.value = i;
-                changingInputElement.dispatchEvent(event);
-            }
-        }
-    }
-
-    start = async () => {
-        await this.generateTreeAnimation();
-    }
-
-    stop = async () => {
-        this._running = false;
     }
 }
 
