@@ -120,9 +120,9 @@ button:hover {
     background-color: #8ba0a4;
     border: 2px solid #eaeaea;
     border-radius: 20px;
-    margin: 20px 0 0 20px;
+    margin: 20px;
     padding: 20px;
-    width: 500px;
+    width: fit-content;
 }
 
 .modal-close-button {
@@ -143,8 +143,8 @@ input[type=number] {
     width: 50px;
 }
 
-.styleModal button {
-    font-size: 16px;
+.style-control-buttons button {
+    font-size: 24px;
 }
 
 .animation-input-container input {

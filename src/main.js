@@ -22,8 +22,7 @@ function toRadians(degrees) {
 
 function drawDot(context, branchStyle, currCoords) {
     let dotRadius = 3;
-    context.stroke();
-    context.moveTo(currCoords.parent.x, currCoords.parent.y);
+    context.beginPath();
     context.arc(currCoords.x, currCoords.y, dotRadius, 0, fullRadians);
     context.globalAlpha = 1;
     context.lineWidth = 2;
@@ -34,7 +33,7 @@ function drawDot(context, branchStyle, currCoords) {
 
 function drawCircle(context, branchStyle, currCoords) {
     let circleRadius = 3;
-    context.moveTo(currCoords.parent.x, currCoords.parent.y);
+    context.beginPath();
     context.arc(currCoords.x, currCoords.y, circleRadius, 0, fullRadians);
     context.globalAlpha = 1;
     context.lineWidth = 2;
@@ -45,20 +44,23 @@ function drawCircle(context, branchStyle, currCoords) {
 
 function drawLine(context, branchStyle, currCoords) {
     context.beginPath();
-    context.moveTo(currCoords.parent.x, currCoords.parent.y);
-    context.lineTo(currCoords.x, currCoords.y);
     context.lineJoin = "round";
     context.globalAlpha = branchStyle.opacity.getMappedValue(currCoords.layer);
     context.strokeStyle = branchStyle.color.getMappedValue(currCoords.layer);
     context.lineWidth = branchStyle.width.getMappedValue(currCoords.layer);
-    let drawnSymbol = branchStyle.symbol.getMappedValue(currCoords.layer);
+    context.moveTo(currCoords.parent.x, currCoords.parent.y);
+    context.lineTo(currCoords.x, currCoords.y);
+    context.stroke();
 
+    let drawnSymbol = branchStyle.symbol.getMappedValue(currCoords.layer);
     if (drawnSymbol === "dot") {
+        context.save();
         drawDot(context, branchStyle, currCoords);
+        context.restore();
     } else if (drawnSymbol === "circle") {
+        context.save();
         drawCircle(context, branchStyle, currCoords);
-    } else {
-        context.stroke();
+        context.restore();
     }
 }
 
@@ -190,7 +192,11 @@ function main() {
     for (let inputId of inputIds) {
         document.getElementById(inputId).addEventListener("input", () => generateTreeFromInputs(context, branchStyle));
     }
-    document.getElementById("apply-style-button").addEventListener("click", () => generateTreeFromStyleInputs(context, branchStyle));
+    for (let attribute of branchStyle.attributesList) {
+        document.getElementById(`${attribute}-start-input`).addEventListener("input", () => generateTreeFromStyleInputs(context, branchStyle));
+        document.getElementById(`${attribute}-end-input`).addEventListener("input", () => generateTreeFromStyleInputs(context, branchStyle));
+    }
+
     document.getElementById("reset-default-styles-button").addEventListener("click", () => generateTreeWithDefaultStyle(context, branchStyle));
     document.getElementById("run-animation-button").addEventListener("click", animationHandler.start);
     document.getElementById("stop-animation-button").addEventListener("click", animationHandler.stop);

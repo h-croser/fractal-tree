@@ -1,5 +1,6 @@
 function buildLinearScaledMap(attributeMap, startValue, endValue, numLayers) {
     const valueDiff = endValue - startValue;
+    attributeMap.clear();
     attributeMap.set(0, startValue);
     for (let currLayer = 1; currLayer <= numLayers; currLayer++) {
         let value = (valueDiff * ((currLayer - 1) / (numLayers - 1))) + startValue;
@@ -8,6 +9,7 @@ function buildLinearScaledMap(attributeMap, startValue, endValue, numLayers) {
 }
 
 function buildNodeMap(symbolMap, startSymbol, endSymbol, numLayers) {
+    symbolMap.clear();
     for (let currLayer = 0; currLayer < numLayers; currLayer++) {
         symbolMap.set(currLayer, startSymbol);
     }
@@ -36,6 +38,7 @@ function buildColorMap(colorMap, startColor, endColor, numLayers) {
     const endRGB = hexToRGB(endColor);
     let ratio = 0.5;
 
+    colorMap.clear();
     colorMap.set(numLayers, endColor);
     for (let currLayer = numLayers - 1; currLayer > 1; currLayer--) {
         const interpolatedColorRGB = [];
