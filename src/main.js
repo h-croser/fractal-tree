@@ -194,7 +194,9 @@ function main() {
 
     const branchStyle = new BranchStyle("./branchStyleDefaults.json");
     setupStyleModal();
-    const animationHandler = new AnimationHandler("animation-frames-input", "animation-type-input");
+    let animationFramesElement = document.getElementById("animation-frames-input");
+    let animationTypeElement = document.getElementById("animation-type-input");
+    const animationHandler = new AnimationHandler(animationFramesElement, animationTypeElement);
 
     const inputIds = ["num-layers-input", "angle-input", "num-trees-input"];
     for (let inputId of inputIds) {
@@ -206,8 +208,7 @@ function main() {
     }
 
     document.getElementById("reset-default-styles-button").addEventListener("click", () => generateTreeWithDefaultStyle(context, branchStyle));
-    document.getElementById("run-animation-button").addEventListener("click", animationHandler.start);
-    document.getElementById("stop-animation-button").addEventListener("click", animationHandler.stop);
+    document.getElementById("run-stop-animation-button").addEventListener("click", animationHandler.playPause);
 
     window.addEventListener('resize', () => canvasResizeAndDraw(context, branchStyle, true));
 
