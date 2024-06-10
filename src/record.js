@@ -18,10 +18,11 @@ export class RecordingHandler {
     }
 
     triggerRecord() {
-        if (this._animationHandler.running) {
-            this.record();
-        } else {
-            this.screenshot();
-        }
+        this.screenshot();
+        // if (this._animationHandler.running) {
+        //     this.record();
+        // } else {
+        //     this.screenshot();
+        // }
     }
 }
