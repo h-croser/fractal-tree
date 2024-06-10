@@ -34,6 +34,9 @@ function drawDot(context, branchStyle, currCoords) {
 function drawCircle(context, branchStyle, currCoords) {
     let circleRadius = 3;
     context.beginPath();
+    context.globalAlpha = 0;
+    context.moveTo(currCoords.x, currCoords.y);
+    context.beginPath();
     context.arc(currCoords.x, currCoords.y, circleRadius, 0, fullRadians);
     context.globalAlpha = 1;
     context.lineWidth = 2;
@@ -51,25 +54,24 @@ function drawLine(context, branchStyle, currCoords) {
     context.moveTo(currCoords.parent.x, currCoords.parent.y);
     context.lineTo(currCoords.x, currCoords.y);
     context.stroke();
+}
 
+function drawSymbol(context, branchStyle, currCoords) {
     let drawnSymbol = branchStyle.symbol.getMappedValue(currCoords.layer);
     if (drawnSymbol === "dot") {
-        context.save();
         drawDot(context, branchStyle, currCoords);
-        context.restore();
     } else if (drawnSymbol === "circle") {
-        context.save();
         drawCircle(context, branchStyle, currCoords);
-        context.restore();
     }
 }
 
 function generateTree(context, branchStyle, numLayers, angleOffsetConstant, addedOffset, root) {
     const queue = new Deque([root]);
+    const nodes = [];
     let curr, leftOffset, rightOffset, branchLength, newX, newY, newNode, offset;
     while (queue.length !== 0)  {
         curr = queue.shift();
-        drawLine(context, branchStyle, curr);
+        nodes.push(curr);
         if (curr.layer < numLayers) {
             branchLength = branchStyle.length.getMappedValue(curr.layer);
             leftOffset = curr.angle + angleOffsetConstant;
@@ -81,6 +83,12 @@ function generateTree(context, branchStyle, numLayers, angleOffsetConstant, adde
                 queue.push(newNode);
             }
         }
+    }
+    for (let curr of nodes) {
+        drawLine(context, branchStyle, curr);
+    }
+    for (let curr of nodes) {
+        drawSymbol(context, branchStyle, curr);
     }
 }
 
