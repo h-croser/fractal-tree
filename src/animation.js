@@ -17,6 +17,10 @@ export class AnimationHandler {
         this.setChangingInputElement();
     }
 
+    get running() {
+        return this._running;
+    }
+
     setMillisecondsPerFrame = async () => {
         let framesInput = parseFloat(this._framesInputElement.value);
         let framesNullChecked = framesInput ? framesInput : 1;

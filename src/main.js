@@ -7,6 +7,7 @@
 import Deque from "double-ended-queue";
 import { BranchStyle } from "./treeStyle";
 import { AnimationHandler } from "./animation";
+import {RecordingHandler} from "./record";
 
 const fullRadians = 2 * Math.PI;
 const radiansFactor = Math.PI / 180;
@@ -197,6 +198,10 @@ function main() {
     let animationFramesElement = document.getElementById("animation-frames-input");
     let animationTypeElement = document.getElementById("animation-type-input");
     const animationHandler = new AnimationHandler(animationFramesElement, animationTypeElement);
+    document.getElementById("run-stop-animation-button").addEventListener("click", () => animationHandler.playPause());
+
+    const recordingHandler = new RecordingHandler(canvas, animationHandler);
+    document.getElementById("record-button").addEventListener("click", () => recordingHandler.triggerRecord());
 
     const inputIds = ["num-layers-input", "angle-input", "num-trees-input"];
     for (let inputId of inputIds) {
@@ -208,7 +213,6 @@ function main() {
     }
 
     document.getElementById("reset-default-styles-button").addEventListener("click", () => generateTreeWithDefaultStyle(context, branchStyle));
-    document.getElementById("run-stop-animation-button").addEventListener("click", animationHandler.playPause);
 
     window.addEventListener('resize', () => canvasResizeAndDraw(context, branchStyle, true));
 
