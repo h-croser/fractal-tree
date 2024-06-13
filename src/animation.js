@@ -8,6 +8,7 @@ export class AnimationHandler {
         this._millisecondsPerFrame = 0;
         this._reversing = false;
         this._changingInputElement = null;
+        this._recordFunction = null;
 
         this._framesInputElement = framesInputElement;
         this._typeInputElement = typeInputElement;
@@ -19,6 +20,10 @@ export class AnimationHandler {
 
     get running() {
         return this._running;
+    }
+
+    set recordFunction(fn) {
+        this._recordFunction = fn;
     }
 
     setMillisecondsPerFrame = async () => {
@@ -74,6 +79,10 @@ export class AnimationHandler {
             }
             this._changingInputElement.value = value;
             this._changingInputElement.dispatchEvent(event);
+            if (this._recordFunction !== null) {
+                this._recordFunction();
+            }
+
             lastFrame = new Date().getTime();
 
             framesTraversed = 1;

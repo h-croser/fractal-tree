@@ -173,6 +173,18 @@ function setupStyleModal() {
     }
 }
 
+function changeRecordingButton(animationHandler) {
+    const recordButton = document.getElementById("record-button");
+    const screenshotSymbol = "&#x1F4F8;";
+    const recordSymbol = "&#x23FA;";
+
+    if (animationHandler.running) {
+        recordButton.innerHTML = recordSymbol;
+    } else {
+        recordButton.innerHTML = screenshotSymbol;
+    }
+}
+
 function canvasResizeAndDraw(context, branchStyle, draw) {
     const canvas = document.getElementById("fractal-container");
 
@@ -199,6 +211,7 @@ function main() {
     let animationTypeElement = document.getElementById("animation-type-input");
     const animationHandler = new AnimationHandler(animationFramesElement, animationTypeElement);
     document.getElementById("run-stop-animation-button").addEventListener("click", () => animationHandler.playPause());
+    document.getElementById("run-stop-animation-button").addEventListener("click", () => changeRecordingButton(animationHandler));
 
     const recordingHandler = new RecordingHandler(canvas, animationHandler);
     document.getElementById("record-button").addEventListener("click", () => recordingHandler.triggerRecord());
