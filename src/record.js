@@ -1,7 +1,16 @@
 export class RecordingHandler {
     constructor(canvas, animationHandler) {
         this._canvas = canvas;
+        this._recorder = new MediaRecorder(canvas.captureStream(), { mimeType: "video/webm;codecs=vp8" });
         this._animationHandler = animationHandler;
+
+        this._recorder.ondataavailable = (e) => {
+            this.downloadRecording(e.data);
+        };
+    }
+
+    get running() {
+        return this._recorder.state === "recording";
     }
 
     screenshot() {
@@ -14,15 +23,29 @@ export class RecordingHandler {
         link.click();
     }
 
-    record() {
+    endRecording() {
+        this._recorder.stop();
+    }
+
+    startRecording() {
+        this._recorder.start();
+    }
+
+    downloadRecording = (data) => {
+        const dataURL = window.URL.createObjectURL(data);
+        const link = document.createElement('a');
+        link.style.display = 'none';
+        link.href = dataURL;
+        link.download = 'fractal-tree.webm';
+
+        link.click();
     }
 
     triggerRecord() {
-        this.screenshot();
-        // if (this._animationHandler.running) {
-        //     this.record();
-        // } else {
-        //     this.screenshot();
-        // }
+        if (this._recorder.state === "recording") {
+            this.endRecording();
+        } else {
+            this.startRecording();
+        }
     }
 }

@@ -74,6 +74,7 @@ export class AnimationHandler {
             }
             this._changingInputElement.value = value;
             this._changingInputElement.dispatchEvent(event);
+
             lastFrame = new Date().getTime();
 
             framesTraversed = 1;

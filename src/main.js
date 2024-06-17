@@ -147,8 +147,8 @@ function generateTreeFromStyleInputs(context, branchStyle) {
     generateTreeFromInputs(context, branchStyle);
 }
 
-async function generateTreeWithDefaultStyle(context, branchStyle) {
-    await branchStyle.initialiseStyles(true);
+async function generateTreeDefaultStyle(context, branchStyle, forceOverwrite) {
+    await branchStyle.initialiseStyles(forceOverwrite);
     generateTreeFromInputs(context, branchStyle);
 }
 
@@ -170,6 +170,39 @@ function setupStyleModal() {
         if (event.target === modal) {
             modal.style.display = "none";
         }
+    }
+}
+
+function setControlRecordButtonStyle(animationHandler, recordingHandler) {
+    const playPauseButton = document.getElementById("play-pause-animation-button");
+    const recordButton = document.getElementById("record-button");
+
+    if (animationHandler.running) {
+        playPauseButton.innerHTML = "pause_circle";
+    } else {
+        playPauseButton.innerHTML = "play_circle";
+    }
+
+    if (recordingHandler.running) {
+        recordButton.style.color = "#BB1C1B";
+        recordButton.style.backgroundColor = "#FFFFFF";
+
+        recordButton.addEventListener("mouseover", function() {
+            recordButton.style.backgroundColor = "#AEAEAE";
+        });
+        recordButton.addEventListener("mouseout", function() {
+            recordButton.style.backgroundColor = "#FFFFFF";
+        });
+    } else {
+        recordButton.style.color = "#FFFFFF";
+        recordButton.style.backgroundColor = "#D74A49";
+
+        recordButton.addEventListener("mouseover", function() {
+            recordButton.style.backgroundColor = "#BB1C1B";
+        });
+        recordButton.addEventListener("mouseout", function() {
+            recordButton.style.backgroundColor = "#D74A49";
+        });
     }
 }
 
@@ -195,13 +228,27 @@ function main() {
 
     const branchStyle = new BranchStyle("./branchStyleDefaults.json");
     setupStyleModal();
+
     let animationFramesElement = document.getElementById("animation-frames-input");
     let animationTypeElement = document.getElementById("animation-type-input");
     const animationHandler = new AnimationHandler(animationFramesElement, animationTypeElement);
-    document.getElementById("run-stop-animation-button").addEventListener("click", () => animationHandler.playPause());
 
     const recordingHandler = new RecordingHandler(canvas, animationHandler);
-    document.getElementById("record-button").addEventListener("click", () => recordingHandler.triggerRecord());
+    const recordButton = document.getElementById("record-button");
+    recordButton.addEventListener("click", function() {
+        recordingHandler.triggerRecord();
+        setControlRecordButtonStyle(animationHandler, recordingHandler);
+    });
+    const captureButton = document.getElementById("capture-button");
+    captureButton.addEventListener("click", function() {
+        recordingHandler.screenshot();
+    });
+
+    const playPauseButton = document.getElementById("play-pause-animation-button");
+    playPauseButton.addEventListener("click", function() {
+        animationHandler.playPause();
+        setControlRecordButtonStyle(animationHandler, recordingHandler);
+    });
 
     const inputIds = ["num-layers-input", "angle-input", "num-trees-input"];
     for (let inputId of inputIds) {
@@ -212,12 +259,12 @@ function main() {
         document.getElementById(`${attribute}-end-input`).addEventListener("input", () => generateTreeFromStyleInputs(context, branchStyle));
     }
 
-    document.getElementById("reset-default-styles-button").addEventListener("click", () => generateTreeWithDefaultStyle(context, branchStyle));
+    document.getElementById("reset-default-styles-button").addEventListener("click", () => generateTreeDefaultStyle(context, branchStyle, true));
 
     window.addEventListener('resize', () => canvasResizeAndDraw(context, branchStyle, true));
 
     canvasResizeAndDraw(context, branchStyle, false)
-    generateTreeWithDefaultStyle(context, branchStyle);
+    generateTreeDefaultStyle(context, branchStyle, false);
 }
 
 main();

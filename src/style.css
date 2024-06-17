@@ -1,25 +1,32 @@
 body {
     margin: 0;
-    background-color: #183e4b;
+    background-color: #183E4B;
 
     font-family: "Lato", sans-serif;
     font-weight: 400;
     font-style: normal;
 }
 
+.material-symbols-outlined {
+    font-variation-settings:
+        'FILL' 1,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+}
+
 button {
-    width: fit-content;
-    height: fit-content;
-    padding: 2px 8px;
-    background-color: #d74a49;
-    border: 2px solid #eaeaea;
-    border-radius: 10px;
-    color: white;
+    width: 50px;
+    height: 50px;
+    font-size: 35px;
+    color: #FFFFFF;
+    background-color: #D74A49;
+    border-radius: 50%;
     cursor: pointer;
 }
 
 button:hover {
-  background-color: #bb1c1b;
+  background-color: #BB1C1B;
 }
 
 #fractal-container {
@@ -39,8 +46,8 @@ button:hover {
     margin: 10px auto;
     padding: 20px;
     width: 75vw;
-    background-color: #8ba0a4;
-    border: 2px solid #eaeaea;
+    background-color: #8BA0A4;
+    border: 2px solid #EAEAEA;
     border-radius: 20px;
     font-weight: 700;
     display: flex;
@@ -90,10 +97,15 @@ button:hover {
 }
 
 .animation-input-container button {
-    width: 50px;
-    height: 50px;
-    font-size: 25px;
     margin-left: 20px;
+}
+
+#play-pause-animation-button {
+     background-color: coral;
+}
+
+#play-pause-animation-button:hover {
+     background-color: #F6551E;
 }
 
 /* Style settings modal */
@@ -103,7 +115,6 @@ button:hover {
     left: 20px;
     bottom: 20px;
     z-index: 1;
-    font-size: 35px;
 }
 
 .modal {
@@ -118,8 +129,8 @@ button:hover {
 }
 
 .modal-content {
-    background-color: #8ba0a4;
-    border: 2px solid #eaeaea;
+    background-color: #8BA0A4;
+    border: 2px solid #EAEAEA;
     border-radius: 20px;
     margin: 20px;
     padding: 20px;
@@ -127,7 +138,7 @@ button:hover {
 }
 
 .modal-close-button {
-    color: #ffffff;
+    color: #FFFFFF;
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -135,17 +146,13 @@ button:hover {
 
 .modal-close-button:hover,
 .modal-close-button:focus {
-    color: black;
+    color: #000000;
     text-decoration: none;
     cursor: pointer;
 }
 
 input[type=number] {
     width: 50px;
-}
-
-.style-control-buttons button {
-    font-size: 18px;
 }
 
 .animation-input-container input {
