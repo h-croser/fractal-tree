@@ -1,31 +1,16 @@
-class Recording {
-    constructor() {
-        this._frames = [];
-    }
-
-    get currentlyRecording() {
-        return this._frames.length > 0;
-    }
-
-    clearFrames() {
-        this._frames = [];
-    }
-
-    get frames() {
-        return this._frames;
-    }
-
-    set newFrame(frame) {
-        this._frames.push(frame);
-    }
-}
-
-
 export class RecordingHandler {
     constructor(canvas, animationHandler) {
-        this._recording = new Recording();
         this._canvas = canvas;
+        this._recorder = new MediaRecorder(canvas.captureStream(), { mimeType: "video/webm;codecs=vp8" });
         this._animationHandler = animationHandler;
+
+        this._recorder.ondataavailable = (e) => {
+            this.downloadRecording(e.data);
+        };
+    }
+
+    get running() {
+        return this._recorder.state === "recording";
     }
 
     screenshot() {
@@ -39,35 +24,28 @@ export class RecordingHandler {
     }
 
     endRecording() {
-        const blob = new Blob(this._recording.frames, { type: 'video/mp4' });
+        this._recorder.stop();
+    }
 
-        const dataURL = URL.createObjectURL(blob);
+    startRecording() {
+        this._recorder.start();
+    }
+
+    downloadRecording = (data) => {
+        const dataURL = window.URL.createObjectURL(data);
         const link = document.createElement('a');
         link.style.display = 'none';
         link.href = dataURL;
-        link.download = 'fractal-tree.mp4';
+        link.download = 'fractal-tree.webm';
 
         link.click();
     }
 
-    _captureFrame() {
-        this._canvas.toBlob(this._recording.newFrame);
-    }
-
-    startRecording() {
-        this._recording.clearFrames();
-        this._animationHandler.recordFunction = this._captureFrame;
-    }
-
     triggerRecord() {
-        if (this._animationHandler.running) {
-            if (this._recording.currentlyRecording) {
-                this.endRecording();
-            } else {
-                this.startRecording();
-            }
+        if (this._recorder.state === "recording") {
+            this.endRecording();
         } else {
-            this.screenshot();
+            this.startRecording();
         }
     }
 }

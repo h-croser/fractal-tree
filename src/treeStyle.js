@@ -71,6 +71,10 @@ class ScalableBranchStyleAttribute {
         return this.layerMap.get(layer);
     }
 
+    get isStartCached() {
+        return (localStorage.getItem(`${this._name}Start`) === null);
+    }
+
     get start() {
         return this.castFunction(localStorage.getItem(`${this._name}Start`));
     }
@@ -80,10 +84,13 @@ class ScalableBranchStyleAttribute {
     }
 
     set startIfNoCache(value) {
-        let cached = this.start;
-        if ((cached === null) || (isNaN(cached))) {
+        if (this.isStartCached) {
             this.start = value;
         }
+    }
+
+    get isEndCached() {
+        return (localStorage.getItem(`${this._name}End`) === null);
     }
 
     get end() {
@@ -95,8 +102,7 @@ class ScalableBranchStyleAttribute {
     }
 
     set endIfNoCache(value) {
-        let cached = this.end;
-        if ((cached === null) || (isNaN(cached))) {
+        if (this.isEndCached) {
             this.end = value;
         }
     }
