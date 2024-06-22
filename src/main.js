@@ -233,7 +233,7 @@ function main() {
     let animationTypeElement = document.getElementById("animation-type-input");
     const animationHandler = new AnimationHandler(animationFramesElement, animationTypeElement);
 
-    const recordingHandler = new RecordingHandler(canvas, animationHandler);
+    const recordingHandler = new RecordingHandler(canvas);
     const recordButton = document.getElementById("record-button");
     recordButton.addEventListener("click", function() {
         recordingHandler.triggerRecord();
