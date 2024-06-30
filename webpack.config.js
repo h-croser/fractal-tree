@@ -31,6 +31,10 @@ module.exports = {
           globOptions: {
             ignore: ['**/*.js']
           }
+        },
+        {
+          from: path.resolve(__dirname, 'src', 'preRenderWorker.js'),
+          to: path.resolve(__dirname, 'dist', 'preRenderWorker.js'),
         }
       ]
     })

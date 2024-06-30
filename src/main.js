@@ -7,66 +7,16 @@
 import Deque from "double-ended-queue";
 import { BranchStyle } from "./treeStyle";
 import { AnimationHandler } from "./animation";
-import {RecordingHandler} from "./record";
+import { RecordingHandler } from "./record";
 
-const fullRadians = 2 * Math.PI;
-const radiansFactor = Math.PI / 180;
-
-
-/////////////////////
-// Tree generation //
-/////////////////////
+const NUM_WORKERS = 1;
+const RADIANS_FACTOR = Math.PI / 180;
 
 function toRadians(degrees) {
-    return degrees * radiansFactor;
+    return degrees * RADIANS_FACTOR;
 }
 
-function drawDot(context, branchStyle, currCoords) {
-    let dotRadius = 3;
-    context.beginPath();
-    context.arc(currCoords.x, currCoords.y, dotRadius, 0, fullRadians);
-    context.globalAlpha = 1;
-    context.lineWidth = 2;
-    context.fillStyle = branchStyle.symbolColor.getMappedValue(currCoords.layer);
-    context.lineJoin = "round";
-    context.fill();
-}
-
-function drawCircle(context, branchStyle, currCoords) {
-    let circleRadius = 3;
-    context.beginPath();
-    context.globalAlpha = 0;
-    context.moveTo(currCoords.x, currCoords.y);
-    context.beginPath();
-    context.arc(currCoords.x, currCoords.y, circleRadius, 0, fullRadians);
-    context.globalAlpha = 1;
-    context.lineWidth = 2;
-    context.strokeStyle = branchStyle.symbolColor.getMappedValue(currCoords.layer);
-    context.lineJoin = "round";
-    context.stroke();
-}
-
-function drawLine(context, branchStyle, currCoords) {
-    context.beginPath();
-    context.lineJoin = "round";
-    context.globalAlpha = branchStyle.opacity.getMappedValue(currCoords.layer);
-    context.strokeStyle = branchStyle.color.getMappedValue(currCoords.layer);
-    context.lineWidth = branchStyle.width.getMappedValue(currCoords.layer);
-    context.moveTo(currCoords.parent.x, currCoords.parent.y);
-    context.lineTo(currCoords.x, currCoords.y);
-    context.stroke();
-}
-
-function drawSymbol(context, branchStyle, currCoords) {
-    let drawnSymbol = branchStyle.symbol.getMappedValue(currCoords.layer);
-    if (drawnSymbol === "dot") {
-        drawDot(context, branchStyle, currCoords);
-    } else if (drawnSymbol === "circle") {
-        drawCircle(context, branchStyle, currCoords);
-    }
-}
-
-function generateTree(context, branchStyle, numLayers, angleOffsetConstant, addedOffset, root) {
+function generateTree(context, workers, branchStyle, numLayers, angleOffsetConstant, addedOffset, root) {
     const queue = new Deque([root]);
     const nodes = [];
     let curr, leftOffset, rightOffset, branchLength, newX, newY, newNode, offset;
@@ -85,15 +35,12 @@ function generateTree(context, branchStyle, numLayers, angleOffsetConstant, adde
             }
         }
     }
-    for (let curr of nodes) {
-        drawLine(context, branchStyle, curr);
-    }
-    for (let curr of nodes) {
-        drawSymbol(context, branchStyle, curr);
-    }
+
+    pushJobToRenderWorkers(context, workers, branchStyle, nodes, "line");
+    pushJobToRenderWorkers(context, workers, branchStyle, nodes, "symbol");
 }
 
-function generateTreeFromInputs(context, branchStyle) {
+function generateTreeFromInputs(context, workers, branchStyle) {
     context.reset();
 
     // Tree variables
@@ -110,11 +57,11 @@ function generateTreeFromInputs(context, branchStyle) {
     let addedDegrees = 0;
     for (let root = 1; root <= numRoots; root++) {
         addedDegrees = (360 / numRoots) * root;
-        generateTree(context, branchStyle, numLayers, toRadians(degreesOffset), toRadians(addedDegrees), currCoords);
+        generateTree(context, workers, branchStyle, numLayers, toRadians(degreesOffset), toRadians(addedDegrees), currCoords);
     }
 }
 
-function generateTreeFromStyleInputs(context, branchStyle) {
+function generateTreeFromStyleInputs(context, workers, branchStyle) {
     for (let attribute of branchStyle.attributesList) {
         let inputStartElement = document.getElementById(`${attribute}-start-input`);
         let inputStartValue = branchStyle[attribute].castFunction(inputStartElement.value);
@@ -144,12 +91,12 @@ function generateTreeFromStyleInputs(context, branchStyle) {
         }
     }
 
-    generateTreeFromInputs(context, branchStyle);
+    generateTreeFromInputs(context, workers, branchStyle);
 }
 
-async function generateTreeDefaultStyle(context, branchStyle, forceOverwrite) {
+async function generateTreeDefaultStyle(context, workers, branchStyle, forceOverwrite) {
     await branchStyle.initialiseStyles(forceOverwrite);
-    generateTreeFromInputs(context, branchStyle);
+    generateTreeFromInputs(context, workers, branchStyle);
 }
 
 function setupStyleModal() {
@@ -206,7 +153,7 @@ function setControlRecordButtonStyle(animationHandler, recordingHandler) {
     }
 }
 
-function canvasResizeAndDraw(context, branchStyle, draw) {
+function canvasResizeAndDraw(context, workers, branchStyle, draw) {
     const canvas = document.getElementById("fractal-container");
 
     const scaleFactor = 0.95;
@@ -217,12 +164,46 @@ function canvasResizeAndDraw(context, branchStyle, draw) {
     canvas.style.transformOrigin = '0 0';
 
     if (draw) {
-        generateTreeFromStyleInputs(context, branchStyle);
+        generateTreeFromStyleInputs(context, workers, branchStyle);
+    }
+}
+
+function initialiseRenderWorkers(numWorkers) {
+    const workers = [];
+    for (let i = 0; i < numWorkers; i++) {
+        workers.push(new Worker("preRenderWorker.js"));
+    }
+
+    return workers;
+}
+
+function pushJobToRenderWorkers(context, workers, branchStyle, nodes, renderMode) {
+    const numNodes = nodes.length;
+    const numWorkers = workers.length;
+    const partSize = Math.floor(numNodes / numWorkers);
+    const remainder = numNodes % numWorkers;
+
+    let start = 0;
+    let end;
+    for (let i = 0; i < numWorkers; i++) {
+        end = start + partSize + (i < remainder ? 1 : 0);
+        workers[i].postMessage({
+            context: context,
+            branchStyle: branchStyle,
+            nodes: nodes.slice(start, end),
+            renderMode: renderMode
+        });
+        start = end;
     }
 }
 
 
 function main() {
+    let workers = [];
+    if (window.Worker) {
+        workers = initialiseRenderWorkers(NUM_WORKERS);
+    }
+
     const canvas = document.getElementById("fractal-container");
     const context = canvas.getContext("2d");
 
@@ -252,19 +233,19 @@ function main() {
 
     const inputIds = ["num-layers-input", "angle-input", "num-trees-input"];
     for (let inputId of inputIds) {
-        document.getElementById(inputId).addEventListener("input", () => generateTreeFromInputs(context, branchStyle));
+        document.getElementById(inputId).addEventListener("input", () => generateTreeFromInputs(context, workers, branchStyle));
     }
     for (let attribute of branchStyle.attributesList) {
-        document.getElementById(`${attribute}-start-input`).addEventListener("input", () => generateTreeFromStyleInputs(context, branchStyle));
-        document.getElementById(`${attribute}-end-input`).addEventListener("input", () => generateTreeFromStyleInputs(context, branchStyle));
+        document.getElementById(`${attribute}-start-input`).addEventListener("input", () => generateTreeFromStyleInputs(context, workers, branchStyle));
+        document.getElementById(`${attribute}-end-input`).addEventListener("input", () => generateTreeFromStyleInputs(context, workers, branchStyle));
     }
 
-    document.getElementById("reset-default-styles-button").addEventListener("click", () => generateTreeDefaultStyle(context, branchStyle, true));
+    document.getElementById("reset-default-styles-button").addEventListener("click", () => generateTreeDefaultStyle(context, workers, branchStyle, true));
 
     window.addEventListener('resize', () => canvasResizeAndDraw(context, branchStyle, true));
 
     canvasResizeAndDraw(context, branchStyle, false)
-    generateTreeDefaultStyle(context, branchStyle, false);
+    generateTreeDefaultStyle(context, workers, branchStyle, false);
 }
 
 main();
