@@ -95,6 +95,7 @@ function generateTree(context, branchStyle, numLayers, angleOffsetConstant, adde
 
 function generateTreeFromInputs(context, branchStyle) {
     context.reset();
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
     // Tree variables
     let numLayers = parseInt(document.getElementById("num-layers-input").value);
