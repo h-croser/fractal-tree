@@ -12,8 +12,9 @@ export class RecordingHandler {
         };
         let containerCodec;
         let selectedCodec = null;
+        this._recorder = null;
         for (let container of containers) {
-            if (this._recorder !== undefined) {
+            if (this._recorder !== null) {
                 break;
             }
             this.container = container;
@@ -27,7 +28,7 @@ export class RecordingHandler {
                 }
             }
         }
-        if ((this.container === null) && (selectedCodec === null)) {
+        if (this._recorder === null) {
             console.warn("No predefined container/codec combination unsupported in this environment: using environment default");
             this._recorder = new MediaRecorder(canvasStream, {
                 audioBitsPerSecond: 0,
