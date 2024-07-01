@@ -267,4 +267,4 @@ function main() {
     generateTreeDefaultStyle(context, branchStyle, false);
 }
 
-main();
+window.addEventListener('load', main);
