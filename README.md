@@ -8,17 +8,17 @@ Despite their name, there are many fractal trees that don't resemble plants and 
 
 ## Examples
 
-<img src="examples/example-1.png" alt="example-1" width="500">
-<img src="examples/example-2.gif" alt="example-1" width="500">
+<img src="examples/example-1.png" alt="example-1" width="800">
+<img src="examples/example-2.gif" alt="example-1" width="800">
 <br>
-<img src="examples/example-3.png" alt="example-1" width="500">
-<img src="examples/example-4.png" alt="example-1" width="500">
+<img src="examples/example-3.png" alt="example-1" width="800">
+<img src="examples/example-4.png" alt="example-1" width="800">
 <br>
-<img src="examples/example-5.png" alt="example-1" width="500">
-<img src="examples/example-6.gif" alt="example-1" width="500">
+<img src="examples/example-5.png" alt="example-1" width="800">
+<img src="examples/example-6.gif" alt="example-1" width="800">
 <br>
-<img src="examples/example-7.png" alt="example-1" width="500">
-<img src="examples/example-8.png" alt="example-1" width="500">
+<img src="examples/example-7.png" alt="example-1" width="800">
+<img src="examples/example-8.png" alt="example-1" width="800">
 <br>
-<img src="examples/example-9.png" alt="example-1" width="500">
-<img src="examples/example-10.png" alt="example-1" width="500">
+<img src="examples/example-9.png" alt="example-1" width="800">
+<img src="examples/example-10.png" alt="example-1" width="800">
