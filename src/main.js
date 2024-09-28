@@ -213,6 +213,9 @@ function canvasResizeAndDraw(context, branchStyle, draw) {
     const scaleFactor = 0.95;
     const smallerDimension = Math.min(window.innerWidth, window.innerHeight) * scaleFactor;
 
+    canvas.width = smallerDimension;
+    canvas.height = smallerDimension;
+
     canvas.style.width = `${smallerDimension}px`;
     canvas.style.height = `${smallerDimension}px`;
     canvas.style.transformOrigin = '0 0';
