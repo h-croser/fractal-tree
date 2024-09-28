@@ -13,8 +13,8 @@ Despite their name, there are many fractal trees that don't resemble plants and 
 </div>
     <br>
 <div style="display: flex; justify-content: center; margin-bottom: 10px;">
-    <img src="examples/example-2.gif" alt="example-2" width="495" style="margin-right: 5px;">
-    <img src="examples/example-3.gif" alt="example-3" width="495" style="margin-left: 5px;">
+    <img src="examples/example-2.gif" alt="example-2" width="410" style="margin-right: 5px;">
+    <img src="examples/example-3.gif" alt="example-3" width="410" style="margin-left: 5px;">
 </div>
 <br>
 <div style="display: flex; flex-direction: column; align-items: center;">
