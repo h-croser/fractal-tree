@@ -10,8 +10,8 @@ Despite their name, there are many fractal trees that don't resemble plants and 
 
 <img src="examples/example-1.png" alt="example-1" width="800">
 <br>
-<img src="examples/example-2.gif" alt="example-2" width="400">
-<img src="examples/example-3.gif" alt="example-3" width="400">
+<img src="examples/example-2.gif" alt="example-2" width="395">
+<img src="examples/example-3.gif" alt="example-3" width="395">
 <br>
 <img src="examples/example-4.png" alt="example-4" width="800">
 <br>
