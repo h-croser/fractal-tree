@@ -1,15 +1,15 @@
 {
   "color": {
-    "start": "#00FFFF",
-    "end": "#D74A49"
+    "start": "#AD343E",
+    "end": "#42D9C8"
   },
   "width": {
     "start": 1,
     "end": 1
   },
   "length": {
-    "start": 60,
-    "end": 60
+    "start": 50,
+    "end": 50
   },
   "opacity": {
     "start": 1.0,
@@ -20,7 +20,7 @@
     "end": ""
   },
   "symbolColor": {
-    "start": "#D74A49",
-    "end": "#00FFFF"
+    "start": "#42D9C8",
+    "end": "#AD343E"
   }
 }

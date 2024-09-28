@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" type="text/css" href="style.css" />
-    <title>Fractal Tree</title>
+    <title>Fractal Tree Visualiser</title>
     <script type="module" src="./bundle.js" defer></script>
 </head>
 <body>
@@ -110,7 +110,7 @@
         <div class="input-container">
             <label for="num-layers-input">Layer count</label>
             <div class="input-output-container">
-                <input type="range" id="num-layers-input" name="num-layers-input" min=1 max=15 value=7 oninput="numLayersOutput.value = this.value">
+                <input type="range" id="num-layers-input" name="num-layers-input" min=1 max=15 value=11 oninput="numLayersOutput.value = this.value">
                 <output id="numLayersOutput">7</output>
             </div>
             <datalist id="num-layers-input-ticks" style="--list-length: 8;">
