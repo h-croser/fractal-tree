@@ -267,7 +267,7 @@ function main() {
 
     window.addEventListener('resize', () => canvasResizeAndDraw(context, branchStyle, true));
 
-    canvasResizeAndDraw(context, branchStyle, false)
+    canvasResizeAndDraw(context, branchStyle, false);
     generateTreeDefaultStyle(context, branchStyle, false);
 }
 
