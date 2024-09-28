@@ -22,7 +22,7 @@ function toRadians(degrees) {
 }
 
 function drawDot(context, branchStyle, currCoords) {
-    let dotRadius = 3;
+    let dotRadius = 2;
     context.beginPath();
     context.arc(currCoords.x, currCoords.y, dotRadius, 0, fullRadians);
     context.globalAlpha = 1;
